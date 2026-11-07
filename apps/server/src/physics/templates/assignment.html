@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" />
+  <style>
+    html,
+    body {
+      margin: 0;
+      background: #000;
+      color: #fff;
+      width: 100%;
+      height: 100%;
+    }
+    svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    text {
+      fill: #fff;
+      font-family: Georgia, serif;
+      font-size: 22px;
+    }
+  </style>
+  <svg
+    viewBox="0 0 540 820"
+    xmlns="http://www.w3.org/2000/svg"
+    aria-label="Balanced assignment of matrix blocks to two GPUs"
+  >
+    <text x="30" y="35">Matrix pool · sizes in MB</text>
+    <text x="270" y="395" text-anchor="middle">Balanced assignment</text>
+    <text x="30" y="600">GPU 1</text>
+    <text x="290" y="600">GPU 2</text>
+    <text id="load-0" x="50" y="785"></text>
+    <text id="load-1" x="310" y="785"></text>
+    <g fill="none" stroke="#fff" stroke-width="1.5">
+      <rect x="30" y="50" width="480" height="300" />
+      <rect x="30" y="415" width="480" height="125" />
+      <path d="M270 350V365 M270 405V415 M270 540V570 M140 610V570H400V610" />
+      <rect x="30" y="615" width="220" height="180" />
+      <rect x="290" y="615" width="220" height="180" />
+    </g>
+    <g id="blocks"></g>
+  </svg>
+  <script>
+    const colors = ["#65b9ff", "#ffbd69", "#65d6a2", "#d69cff"];
+    const sizes = [6, 5, 2, 1];
+    const loads = [0, 0];
+    // Largest first, then place each matrix on the less loaded GPU.
+    const assignments = sizes.map((size) => {
+      const gpu = loads[0] <= loads[1] ? 0 : 1;
+      loads[gpu] += size;
+      return gpu;
+    });
+    const group = document.getElementById("blocks");
+    const blocks = colors.map((color, i) => {
+      const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      g.innerHTML = `<rect width="${48 + sizes[i] * 22}" height="44" fill="${color}" fill-opacity=".25" stroke="${color}" stroke-width="1.5"/><text x="8" y="30">W${String.fromCharCode(0x2081 + i)} · ${sizes[i]}</text>`;
+      group.append(g);
+      return g;
+    });
+    window.lbgosVisual = {
+      steps: [
+        { label: "Four matrices have sizes 6, 5, 2 and 1 MB." },
+        { label: "Assign W₁ and W₂ to different GPUs.", duration: 1800 },
+        { label: "Place each smaller matrix on the less loaded GPU: 7 MB each.", duration: 1800 },
+      ],
+      captions: [
+        "Watch the four matrices waiting in the pool. Their sizes add up to $14$ MB, so an even split would put $7$ MB on each GPU.",
+        "Watch the two largest matrices move to different GPUs. The smaller matrices can now fill the difference between their loads.",
+        "Each smaller matrix goes to the GPU with less work. Both GPUs finish with $7$ MB, so neither waits for a heavier assignment.",
+      ],
+      render(step, t) {
+        const assignedLoads = [0, 0];
+        blocks.forEach((block, i) => {
+          const phase = i < 2 ? 1 : 2;
+          const progress = step < phase ? 0 : step > phase ? 1 : t;
+          const gpu = assignments[i];
+          const start = [50 + gpu * 260, 255 - Math.floor(i / 2) * 140];
+          const end = [start[0], 720 - Math.floor(i / 2) * 70];
+          if (progress === 1) assignedLoads[gpu] += sizes[i];
+          // Fill from the bottom so moving blocks never cross a waiting or assigned block.
+          const middle = [start[0], 455];
+          const a = progress < 0.5 ? start : middle;
+          const b = progress < 0.5 ? middle : end;
+          const u = progress < 0.5 ? progress * 2 : progress * 2 - 1;
+          block.setAttribute(
+            "transform",
+            `translate(${a[0] + (b[0] - a[0]) * u},${a[1] + (b[1] - a[1]) * u})`,
+          );
+        });
+        assignedLoads.forEach((load, gpu) => {
+          document.getElementById(`load-${gpu}`).textContent = `Load: ${load} MB`;
+        });
+      },
+    };
+  </script>
+</html>

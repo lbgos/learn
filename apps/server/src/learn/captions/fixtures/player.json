@@ -1,0 +1,204 @@
+{
+  "videoDetails": {
+    "title": "NVIDIA Made 4-Bit AI Work. It’s a Nightmare.",
+    "author": "bycloud",
+    "lengthSeconds": "1191"
+  },
+  "captions": {
+    "playerCaptionsTracklistRenderer": {
+      "captionTracks": [
+        {
+          "baseUrl": "https://www.youtube.com/api/timedtext?v=mTd3tBpfYmw&lang=ar",
+          "languageCode": "ar",
+          "kind": "asr",
+          "vssId": "a.ar"
+        },
+        {
+          "baseUrl": "https://www.youtube.com/api/timedtext?v=mTd3tBpfYmw&lang=bn",
+          "languageCode": "bn",
+          "kind": "asr",
+          "vssId": "a.bn"
+        },
+        {
+          "baseUrl": "https://www.youtube.com/api/timedtext?v=mTd3tBpfYmw&lang=nl-NL",
+          "languageCode": "nl-NL",
+          "kind": "asr",
+          "vssId": "a.nl-NL"
+        },
+        {
+          "baseUrl": "https://www.youtube.com/api/timedtext?v=mTd3tBpfYmw&lang=en",
+          "languageCode": "en",
+          "kind": "asr",
+          "vssId": "a.en"
+        },
+        {
+          "baseUrl": "https://www.youtube.com/api/timedtext?v=mTd3tBpfYmw&lang=fr-FR",
+          "languageCode": "fr-FR",
+          "kind": "asr",
+          "vssId": "a.fr-FR"
+        },
+        {
+          "baseUrl": "https://www.youtube.com/api/timedtext?v=mTd3tBpfYmw&lang=de-DE",
+          "languageCode": "de-DE",
+          "kind": "asr",
+          "vssId": "a.de-DE"
+        },
+        {
+          "baseUrl": "https://www.youtube.com/api/timedtext?v=mTd3tBpfYmw&lang=iw",
+          "languageCode": "iw",
+          "kind": "asr",
+          "vssId": "a.iw"
+        },
+        {
+          "baseUrl": "https://www.youtube.com/api/timedtext?v=mTd3tBpfYmw&lang=hi",
+          "languageCode": "hi",
+          "kind": "asr",
+          "vssId": "a.hi"
+        },
+        {
+          "baseUrl": "https://www.youtube.com/api/timedtext?v=mTd3tBpfYmw&lang=id",
+          "languageCode": "id",
+          "kind": "asr",
+          "vssId": "a.id"
+        },
+        {
+          "baseUrl": "https://www.youtube.com/api/timedtext?v=mTd3tBpfYmw&lang=it",
+          "languageCode": "it",
+          "kind": "asr",
+          "vssId": "a.it"
+        },
+        {
+          "baseUrl": "https://www.youtube.com/api/timedtext?v=mTd3tBpfYmw&lang=ja",
+          "languageCode": "ja",
+          "kind": "asr",
+          "vssId": "a.ja"
+        },
+        {
+          "baseUrl": "https://www.youtube.com/api/timedtext?v=mTd3tBpfYmw&lang=ko",
+          "languageCode": "ko",
+          "kind": "asr",
+          "vssId": "a.ko"
+        },
+        {
+          "baseUrl": "https://www.youtube.com/api/timedtext?v=mTd3tBpfYmw&lang=ml",
+          "languageCode": "ml",
+          "kind": "asr",
+          "vssId": "a.ml"
+        },
+        {
+          "baseUrl": "https://www.youtube.com/api/timedtext?v=mTd3tBpfYmw&lang=pl",
+          "languageCode": "pl",
+          "kind": "asr",
+          "vssId": "a.pl"
+        },
+        {
+          "baseUrl": "https://www.youtube.com/api/timedtext?v=mTd3tBpfYmw&lang=pt-BR",
+          "languageCode": "pt-BR",
+          "kind": "asr",
+          "vssId": "a.pt-BR"
+        },
+        {
+          "baseUrl": "https://www.youtube.com/api/timedtext?v=mTd3tBpfYmw&lang=pa",
+          "languageCode": "pa",
+          "kind": "asr",
+          "vssId": "a.pa"
+        },
+        {
+          "baseUrl": "https://www.youtube.com/api/timedtext?v=mTd3tBpfYmw&lang=ru",
+          "languageCode": "ru",
+          "kind": "asr",
+          "vssId": "a.ru"
+        },
+        {
+          "baseUrl": "https://www.youtube.com/api/timedtext?v=mTd3tBpfYmw&lang=es-US",
+          "languageCode": "es-US",
+          "kind": "asr",
+          "vssId": "a.es-US"
+        },
+        {
+          "baseUrl": "https://www.youtube.com/api/timedtext?v=mTd3tBpfYmw&lang=ta",
+          "languageCode": "ta",
+          "kind": "asr",
+          "vssId": "a.ta"
+        },
+        {
+          "baseUrl": "https://www.youtube.com/api/timedtext?v=mTd3tBpfYmw&lang=te",
+          "languageCode": "te",
+          "kind": "asr",
+          "vssId": "a.te"
+        },
+        {
+          "baseUrl": "https://www.youtube.com/api/timedtext?v=mTd3tBpfYmw&lang=uk",
+          "languageCode": "uk",
+          "kind": "asr",
+          "vssId": "a.uk"
+        }
+      ],
+      "audioTracks": [
+        {
+          "defaultCaptionTrackIndex": 3
+        },
+        {
+          "defaultCaptionTrackIndex": 3
+        },
+        {
+          "defaultCaptionTrackIndex": 3
+        },
+        {
+          "defaultCaptionTrackIndex": 3
+        },
+        {
+          "defaultCaptionTrackIndex": 3
+        },
+        {
+          "defaultCaptionTrackIndex": 3
+        },
+        {
+          "defaultCaptionTrackIndex": 3
+        },
+        {
+          "defaultCaptionTrackIndex": 3
+        },
+        {
+          "defaultCaptionTrackIndex": 3
+        },
+        {
+          "defaultCaptionTrackIndex": 3
+        },
+        {
+          "defaultCaptionTrackIndex": 3
+        },
+        {
+          "defaultCaptionTrackIndex": 3
+        },
+        {
+          "defaultCaptionTrackIndex": 3
+        },
+        {
+          "defaultCaptionTrackIndex": 3
+        },
+        {
+          "defaultCaptionTrackIndex": 3
+        },
+        {
+          "defaultCaptionTrackIndex": 3
+        },
+        {
+          "defaultCaptionTrackIndex": 3
+        },
+        {
+          "defaultCaptionTrackIndex": 3
+        },
+        {
+          "defaultCaptionTrackIndex": 3
+        },
+        {
+          "defaultCaptionTrackIndex": 3
+        },
+        {
+          "defaultCaptionTrackIndex": 3
+        }
+      ]
+    }
+  }
+}

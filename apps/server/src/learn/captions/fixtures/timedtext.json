@@ -1,0 +1,551 @@
+{
+  "events": [
+    {
+      "tStartMs": 0,
+      "dDurationMs": 1193240
+    },
+    {
+      "tStartMs": 0,
+      "dDurationMs": 3680,
+      "segs": [
+        {
+          "utf8": "With"
+        },
+        {
+          "utf8": " the"
+        },
+        {
+          "utf8": " anticipated"
+        },
+        {
+          "utf8": " Nvidia"
+        },
+        {
+          "utf8": " GPU"
+        }
+      ]
+    },
+    {
+      "tStartMs": 1630,
+      "dDurationMs": 2050,
+      "segs": [
+        {
+          "utf8": "\n"
+        }
+      ]
+    },
+    {
+      "tStartMs": 1640,
+      "dDurationMs": 4520,
+      "segs": [
+        {
+          "utf8": "architecture,"
+        },
+        {
+          "utf8": " Vera"
+        },
+        {
+          "utf8": " Rubin,"
+        },
+        {
+          "utf8": " I"
+        },
+        {
+          "utf8": " think"
+        },
+        {
+          "utf8": " many"
+        }
+      ]
+    },
+    {
+      "tStartMs": 3670,
+      "dDurationMs": 2490,
+      "segs": [
+        {
+          "utf8": "\n"
+        }
+      ]
+    },
+    {
+      "tStartMs": 3680,
+      "dDurationMs": 4240,
+      "segs": [
+        {
+          "utf8": "of"
+        },
+        {
+          "utf8": " us"
+        },
+        {
+          "utf8": " have"
+        },
+        {
+          "utf8": " seen"
+        },
+        {
+          "utf8": " the"
+        },
+        {
+          "utf8": " term"
+        },
+        {
+          "utf8": " NVF"
+        },
+        {
+          "utf8": " P4"
+        },
+        {
+          "utf8": " being"
+        }
+      ]
+    },
+    {
+      "tStartMs": 6150,
+      "dDurationMs": 1770,
+      "segs": [
+        {
+          "utf8": "\n"
+        }
+      ]
+    },
+    {
+      "tStartMs": 6160,
+      "dDurationMs": 3800,
+      "segs": [
+        {
+          "utf8": "tossed"
+        },
+        {
+          "utf8": " around"
+        },
+        {
+          "utf8": " a"
+        },
+        {
+          "utf8": " lot"
+        },
+        {
+          "utf8": " more."
+        },
+        {
+          "utf8": " Something"
+        }
+      ]
+    },
+    {
+      "tStartMs": 7910,
+      "dDurationMs": 2050,
+      "segs": [
+        {
+          "utf8": "\n"
+        }
+      ]
+    },
+    {
+      "tStartMs": 7920,
+      "dDurationMs": 4320,
+      "segs": [
+        {
+          "utf8": "like,"
+        },
+        {
+          "utf8": " \"Oh,"
+        },
+        {
+          "utf8": " it"
+        },
+        {
+          "utf8": " is"
+        },
+        {
+          "utf8": " able"
+        },
+        {
+          "utf8": " to"
+        },
+        {
+          "utf8": " achieve"
+        },
+        {
+          "utf8": " 50"
+        }
+      ]
+    },
+    {
+      "tStartMs": 9950,
+      "dDurationMs": 2290,
+      "segs": [
+        {
+          "utf8": "\n"
+        }
+      ]
+    },
+    {
+      "tStartMs": 9960,
+      "dDurationMs": 5000,
+      "segs": [
+        {
+          "utf8": "petaflops"
+        },
+        {
+          "utf8": " of"
+        },
+        {
+          "utf8": " compute"
+        },
+        {
+          "utf8": " at"
+        },
+        {
+          "utf8": " NVF"
+        },
+        {
+          "utf8": " P4"
+        }
+      ]
+    },
+    {
+      "tStartMs": 12230,
+      "dDurationMs": 2730,
+      "segs": [
+        {
+          "utf8": "\n"
+        }
+      ]
+    },
+    {
+      "tStartMs": 12240,
+      "dDurationMs": 4960,
+      "segs": [
+        {
+          "utf8": "precision.\""
+        },
+        {
+          "utf8": " Very"
+        },
+        {
+          "utf8": " cool,"
+        },
+        {
+          "utf8": " a"
+        },
+        {
+          "utf8": " lot"
+        },
+        {
+          "utf8": " of"
+        },
+        {
+          "utf8": " numbers"
+        }
+      ]
+    },
+    {
+      "tStartMs": 14950,
+      "dDurationMs": 2250,
+      "segs": [
+        {
+          "utf8": "\n"
+        }
+      ]
+    },
+    {
+      "tStartMs": 14960,
+      "dDurationMs": 4440,
+      "segs": [
+        {
+          "utf8": "with"
+        },
+        {
+          "utf8": " a"
+        },
+        {
+          "utf8": " lot"
+        },
+        {
+          "utf8": " of"
+        },
+        {
+          "utf8": " fancy"
+        },
+        {
+          "utf8": " terms,"
+        },
+        {
+          "utf8": " but"
+        },
+        {
+          "utf8": " probably"
+        }
+      ]
+    },
+    {
+      "tStartMs": 17190,
+      "dDurationMs": 2210,
+      "segs": [
+        {
+          "utf8": "\n"
+        }
+      ]
+    },
+    {
+      "tStartMs": 17200,
+      "dDurationMs": 4120,
+      "segs": [
+        {
+          "utf8": "90%"
+        },
+        {
+          "utf8": " of"
+        },
+        {
+          "utf8": " the"
+        },
+        {
+          "utf8": " Nvidia"
+        },
+        {
+          "utf8": " stockholders"
+        },
+        {
+          "utf8": " don't"
+        }
+      ]
+    },
+    {
+      "tStartMs": 19390,
+      "dDurationMs": 1930,
+      "segs": [
+        {
+          "utf8": "\n"
+        }
+      ]
+    },
+    {
+      "tStartMs": 19400,
+      "dDurationMs": 4160,
+      "segs": [
+        {
+          "utf8": "even"
+        },
+        {
+          "utf8": " know"
+        },
+        {
+          "utf8": " what"
+        },
+        {
+          "utf8": " the"
+        },
+        {
+          "utf8": " sentence"
+        },
+        {
+          "utf8": " means."
+        },
+        {
+          "utf8": " So,"
+        }
+      ]
+    },
+    {
+      "tStartMs": 21310,
+      "dDurationMs": 2250,
+      "segs": [
+        {
+          "utf8": "\n"
+        }
+      ]
+    },
+    {
+      "tStartMs": 21320,
+      "dDurationMs": 4760,
+      "segs": [
+        {
+          "utf8": "in"
+        },
+        {
+          "utf8": " today's"
+        },
+        {
+          "utf8": " video,"
+        },
+        {
+          "utf8": " let"
+        },
+        {
+          "utf8": " us"
+        },
+        {
+          "utf8": " dive"
+        },
+        {
+          "utf8": " into"
+        },
+        {
+          "utf8": " how"
+        }
+      ]
+    },
+    {
+      "tStartMs": 23550,
+      "dDurationMs": 2530,
+      "segs": [
+        {
+          "utf8": "\n"
+        }
+      ]
+    },
+    {
+      "tStartMs": 23560,
+      "dDurationMs": 4800,
+      "segs": [
+        {
+          "utf8": "important"
+        },
+        {
+          "utf8": " precision"
+        },
+        {
+          "utf8": " is"
+        },
+        {
+          "utf8": " for"
+        },
+        {
+          "utf8": " the"
+        },
+        {
+          "utf8": " age"
+        },
+        {
+          "utf8": " of"
+        },
+        {
+          "utf8": " AI"
+        }
+      ]
+    },
+    {
+      "tStartMs": 26070,
+      "dDurationMs": 2290,
+      "segs": [
+        {
+          "utf8": "\n"
+        }
+      ]
+    },
+    {
+      "tStartMs": 26080,
+      "dDurationMs": 5040,
+      "segs": [
+        {
+          "utf8": "and"
+        },
+        {
+          "utf8": " find"
+        },
+        {
+          "utf8": " out"
+        },
+        {
+          "utf8": " why"
+        },
+        {
+          "utf8": " Nvidia"
+        },
+        {
+          "utf8": " is"
+        },
+        {
+          "utf8": " so"
+        },
+        {
+          "utf8": " determined"
+        }
+      ]
+    },
+    {
+      "tStartMs": 28350,
+      "dDurationMs": 2770,
+      "segs": [
+        {
+          "utf8": "\n"
+        }
+      ]
+    },
+    {
+      "tStartMs": 28360,
+      "dDurationMs": 4920,
+      "segs": [
+        {
+          "utf8": "to"
+        },
+        {
+          "utf8": " push"
+        },
+        {
+          "utf8": " NVF"
+        },
+        {
+          "utf8": " P4"
+        },
+        {
+          "utf8": " to"
+        },
+        {
+          "utf8": " the"
+        },
+        {
+          "utf8": " LLM"
+        },
+        {
+          "utf8": " frontier."
+        },
+        {
+          "utf8": " This"
+        }
+      ]
+    },
+    {
+      "tStartMs": 31110,
+      "dDurationMs": 2170,
+      "segs": [
+        {
+          "utf8": "\n"
+        }
+      ]
+    },
+    {
+      "tStartMs": 31120,
+      "dDurationMs": 3920,
+      "segs": [
+        {
+          "utf8": "video"
+        },
+        {
+          "utf8": " is"
+        },
+        {
+          "utf8": " not"
+        },
+        {
+          "utf8": " sponsored"
+        },
+        {
+          "utf8": " by"
+        },
+        {
+          "utf8": " Nvidia,"
+        },
+        {
+          "utf8": " by"
+        },
+        {
+          "utf8": " the"
+        }
+      ]
+    }
+  ]
+}

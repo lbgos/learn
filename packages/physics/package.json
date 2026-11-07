@@ -1,0 +1,31 @@
+{
+  "name": "@t3tools/physics",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./board": "./src/board.ts",
+    "./visual": "./src/visual.ts",
+    "./sim": "./src/sim.ts",
+    "./measure": "./src/sim/measure.ts"
+  },
+  "scripts": {
+    "build:runtime": "node scripts/build-runtime.mjs",
+    "typecheck": "tsc --noEmit --checkers 1",
+    "test": "vp test run --config ../../vite.config.ts --dir ."
+  },
+  "dependencies": {
+    "effect": "catalog:",
+    "katex": "0.16.22",
+    "perfect-freehand": "1.2.2",
+    "three": "0.180.0"
+  },
+  "devDependencies": {
+    "@types/katex": "0.16.7",
+    "@types/node": "catalog:",
+    "@types/three": "0.180.0",
+    "esbuild": "0.28.2",
+    "vite-plus": "catalog:"
+  }
+}

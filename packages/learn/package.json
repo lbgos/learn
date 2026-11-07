@@ -1,0 +1,28 @@
+{
+  "name": "@t3tools/learn",
+  "version": "0.0.1",
+  "private": true,
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "exports": {
+    "./graph": "./src/graph/index.ts",
+    "./graph/node": "./src/graph/node/index.ts",
+    "./session": "./src/session/index.ts",
+    "./review": "./src/review/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit --checkers 1",
+    "test": "vp test run --config ../../vite.config.ts --dir ."
+  },
+  "dependencies": {
+    "@t3tools/contracts": "workspace:*",
+    "d3-force": "3.0.0",
+    "effect": "catalog:",
+    "ts-fsrs": "5.4.2"
+  },
+  "devDependencies": {
+    "@types/d3-force": "3.0.10",
+    "@types/node": "catalog:",
+    "vite-plus": "catalog:"
+  }
+}

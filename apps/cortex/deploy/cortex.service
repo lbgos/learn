@@ -1,0 +1,24 @@
+[Unit]
+Description=Cortex knowledge vault MCP
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/lbgos-learn/apps/cortex
+EnvironmentFile=/etc/cortex/cortex.env
+ExecStart=/usr/bin/node /opt/lbgos-learn/apps/cortex/src/cli.ts serve
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=150
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/cortex /var/cache/cortex
+MemoryMax=1500M
+CPUQuota=150%
+
+[Install]
+WantedBy=multi-user.target
