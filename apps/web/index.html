@@ -7,6 +7,14 @@
       content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content"
     />
     <meta name="theme-color" content="#000000" />
+    <!-- Home Screen app: an opaque black status bar, with the page below it and running to the
+         bottom edge (viewport-fit=cover). Since iOS 26.1, black-translucent puts a system blur
+         over the page's top and leaves a status-bar-tall gap at the bottom (WebKit 301994,
+         317153). iOS reads this tag only when the app is added to the Home Screen. -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-title" content="lbgos learn" />
     <link rel="icon" href="/favicon.ico" sizes="48x48" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
