@@ -82,10 +82,16 @@ describe("nextContextStep", () => {
       reset("run:2"),
     ],
     [
-      "flushes a DeepSeek lesson late",
+      "flushes a DeepSeek lesson at its boundary",
+      records([run(1, { modelSelection: { instanceId: claude, model: "deepseek-v4.1-flash" } })]),
+      done + 6 * 60 * MINUTE,
+      flush("run:1"),
+    ],
+    [
+      "resets a DeepSeek lesson found late without a flush",
       records([run(1, { modelSelection: { instanceId: claude, model: "deepseek-v4.1-flash" } })]),
       done + 7 * 60 * MINUTE,
-      flush("run:1"),
+      reset("run:1"),
     ],
     [
       "waits while a run is busy",

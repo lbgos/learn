@@ -9,6 +9,7 @@ import * as Duration from "effect/Duration";
 import * as Effect from "effect/Effect";
 import * as FiberMap from "effect/FiberMap";
 import * as Layer from "effect/Layer";
+import * as Semaphore from "effect/Semaphore";
 import * as Stream from "effect/Stream";
 import * as Orchestrator from "../../orchestration-v2/Orchestrator.ts";
 import * as Projections from "../../orchestration-v2/ProjectionStore.ts";
@@ -17,6 +18,10 @@ import * as LearnSessionStore from "../session/LearnSessionStore.ts";
 import { FLUSH_PROMPT, nextContextStep } from "./contextFlush.ts";
 
 const terminal = new Set(["completed", "failed", "cancelled", "interrupted", "rolled_back"]);
+/** Flush turns that run at once; each spawns a provider process. */
+const FLUSH_SLOTS = 2;
+/** A slot frees when the thread's next run ends, or after this long. */
+const FLUSH_SLOT_HOLD = Duration.minutes(10);
 
 /**
  * A tutor thread idle past its provider's boundary gets a hidden turn that saves learner notes
@@ -30,9 +35,11 @@ export const layer = Layer.effectDiscard(
     const projections = yield* Projections.ProjectionStoreV2;
     const store = yield* LearnSessionStore.LearnSessionStore;
     const timers = yield* FiberMap.make<ThreadId>();
+    const flushSlots = yield* Semaphore.make(FLUSH_SLOTS);
 
     const follow = Effect.fn("LearnContextFlush.follow")(
       function* (threadId: ThreadId) {
+        let holdsSlot = false;
         while (true) {
           const session = yield* store.get(threadId);
           if (session === null) return;
@@ -54,6 +61,12 @@ export const layer = Layer.effectDiscard(
             continue;
           }
           if (step.type === "flush") {
+            // Waiting for a slot takes time, so the step is read again once one is held.
+            if (!holdsSlot) {
+              yield* Effect.acquireRelease(flushSlots.take(1), () => flushSlots.release(1));
+              holdsSlot = true;
+              continue;
+            }
             const id = `${MEMORY_FLUSH_MESSAGE_PREFIX}${step.runId}`;
             yield* orchestrator.dispatch({
               type: "message.dispatch",
@@ -66,6 +79,8 @@ export const layer = Layer.effectDiscard(
               createdBy: "agent",
               creationSource: "server",
             });
+            // The flush run's terminal event replaces this fiber, which frees the slot.
+            yield* Effect.sleep(FLUSH_SLOT_HOLD);
           } else
             yield* orchestrator.dispatch({
               type: "thread.context.reset",
@@ -77,6 +92,7 @@ export const layer = Layer.effectDiscard(
       },
       (effect, threadId) =>
         effect.pipe(
+          Effect.scoped,
           Effect.catchCause((cause) =>
             Effect.logWarning("Learn context step skipped", { threadId, cause }),
           ),

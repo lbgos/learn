@@ -14,19 +14,20 @@ const HOUR = 60 * MINUTE;
 
 /**
  * How long a tutor thread stays idle before it saves notes and starts a fresh provider context,
- * per provider driver, or per model where the model sets the price. `warmOnly`: a flush after the
- * prompt cache expired pays a full cold read, so a late one is skipped and the thread resets
- * without it.
+ * per provider driver, or per model where the model sets the price.
  */
-const CONTEXT_BOUNDARY: Record<string, { readonly idleMs: number; readonly warmOnly: boolean }> = {
+const CONTEXT_BOUNDARY: Record<string, number> = {
   // Claude's prompt cache lasts an hour, Codex's often as long; Claude's idle compaction starts at 58 min.
-  claudeAgent: { idleMs: 55 * MINUTE, warmOnly: true },
-  codex: { idleMs: 55 * MINUTE, warmOnly: true },
+  claudeAgent: 55 * MINUTE,
+  codex: 55 * MINUTE,
   // Uncached DeepSeek reads cost little.
-  deepseek: { idleMs: 6 * HOUR, warmOnly: false },
+  deepseek: 6 * HOUR,
 };
-const OTHER = { idleMs: 6 * HOUR, warmOnly: false };
-/** A timer firing this much past its boundary (a restart, a busy host) counts as late. */
+const OTHER = 6 * HOUR;
+/**
+ * A step this far past its boundary (a restart, a busy host) resets without a flush: a late flush
+ * reads a cold cache, and a restart would start one for every idle session at once.
+ */
 const LATE_MS = 5 * MINUTE;
 
 const contextBoundary = (driver: string, model: string) =>
@@ -132,10 +133,11 @@ export function nextContextStep(
   // The next run moves to another provider, which starts a new conversation anyway.
   if (latest.providerInstanceId !== thread.providerInstanceId) return null;
   const driver = records.providerThreads.find((t) => t.id === latest.providerThreadId)?.driver;
-  const boundary = contextBoundary(driver ?? "", latest.modelSelection.model);
-  const dueMs = DateTime.toEpochMillis(latest.completedAt) + boundary.idleMs;
+  const dueMs =
+    DateTime.toEpochMillis(latest.completedAt) +
+    contextBoundary(driver ?? "", latest.modelSelection.model);
   if (nowMs < dueMs) return { type: "wait", untilMs: dueMs };
-  if (boundary.warmOnly && nowMs > dueMs + LATE_MS) return { type: "reset", runId: latest.id };
+  if (nowMs > dueMs + LATE_MS) return { type: "reset", runId: latest.id };
   return { type: "flush", runId: latest.id };
 }
 
