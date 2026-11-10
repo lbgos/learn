@@ -453,11 +453,7 @@ export function AppSidebarLayout({ children }: { children: ReactNode }) {
         {/* iOS 26+ draws a soft blur over the web view's top edge unless a full-width opaque fixed
             element sits there; with one it fills the edge with that colour (WebKit 301756). It
             stays hit-testable so the edge finds it, not a translucent bar under it. */}
-        <div
-          aria-hidden
-          data-top-edge
-          className="fixed inset-x-0 top-0 z-50 h-1.5 bg-background md:hidden"
-        />
+        <div aria-hidden className="fixed inset-x-0 top-0 z-50 h-1.5 bg-background md:hidden" />
         <Sidebar
           side="left"
           collapsible="offcanvas"
