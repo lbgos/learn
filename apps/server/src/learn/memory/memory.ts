@@ -522,9 +522,9 @@ export const recalledLine = (note: MemoryNote) => `[${note.source.at.slice(0, 10
 export const RECALL_MIN = 0.45;
 
 /**
- * The cosine similarity (multilingual-e5-small) a note needs to come in through the query's
- * vector. memory_search fuses the nearest notes by rank alone; unasked recall needs 0.80, as an
- * unrelated note's similarity is often above 0.8 with this model; update_memory's look-alikes need
- * 0.88, where a note and the note it replaces meet. Calibrated on evals/learn-memory.
+ * The cosine similarity (multilingual-e5-small) a note needs to come in through the query's vector.
+ * memory_search fuses by rank alone; unasked recall needs 0.82, since learner notes all sit close
+ * together (0.80 let 5 unrelated notes into turns with no answer); update_memory's look-alikes
+ * need 0.88. Calibrated on evals/learn-memory.
  */
-export const DENSE_MIN = { recall: 0.8, search: 0, similar: 0.88 } as const;
+export const DENSE_MIN = { recall: 0.82, search: 0, similar: 0.88 } as const;

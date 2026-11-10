@@ -6,6 +6,7 @@ Write or run an eval when a change affects what a model sees or does: agent inst
 
 | Eval                            | Measures                                                                                                          |
 | ------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| [learn-memory](learn-memory/)   | Which of the tutor's learner notes reach a turn and `memory_search`, by words alone and with the embedder.        |
 | [learn-pacing](learn-pacing/)   | Whether the learning tutor paces turns and answers requests, disputes and confidence mismatches as its text asks. |
 | [mcp-tool-use](mcp-tool-use/)   | Whether agents use T3's MCP tools correctly, including device routing and recovery, in fake threads.              |
 | [thread-titles](thread-titles/) | Whether generated thread titles name the right subject.                                                           |
