@@ -3544,6 +3544,7 @@ it.layer(layerTest)("ProjectionStoreV2", (it) => {
     ["a typed /compact", "user", "mobile", undefined, false, "/compact"],
     ["a normalized idle command", "agent", "server", undefined, true, " \t\u00a0/COMPACT\u3000\n"],
     ["an ordinary prompt with idle metadata", "user", "web", "onReturn", false, "Continue"],
+    ["a memory flush", "agent", "server", undefined, true, "Save notes"],
   ] as const)(
     "keeps the shell on the user's last turn only during %s",
     ([name, createdBy, creationSource, idleCompaction, silent, text]) =>
@@ -3553,7 +3554,11 @@ it.layer(layerTest)("ProjectionStoreV2", (it) => {
         const key = name.replaceAll(/\W+/g, "-");
         const threadId = ThreadId.make(`thread:projection-shell-silent:${key}`);
         const runId = RunId.make(`run:projection-shell-silent:${key}`);
-        const messageId = MessageId.make(`message:projection-shell-silent:${key}`);
+        // A memory flush stays hidden even when it fails.
+        const flush = name === "a memory flush";
+        const messageId = MessageId.make(
+          flush ? `memory-flush:${key}` : `message:projection-shell-silent:${key}`,
+        );
         yield* projectionStore.apply({
           id: EventId.make(`event:projection-shell-silent:${key}:thread`),
           type: "thread.created",
@@ -3657,10 +3662,10 @@ it.layer(layerTest)("ProjectionStoreV2", (it) => {
           activeRunId: null,
           latestUserMessageAt: false,
         };
-        assert.deepStrictEqual(yield* presented, [
-          silent ? hidden : visible,
-          silent ? hidden : visible,
-        ]);
+        // A running memory flush is still the run Stop and its tool calls reach.
+        const flushRunning = { ...hidden, activeRunId: runId };
+        const shown = flush ? flushRunning : silent ? hidden : visible;
+        assert.deepStrictEqual(yield* presented, [shown, shown]);
 
         // A run that fails outright, e.g. on a provider error, needs the user too.
         const running = (yield* projectionStore.getThreadProjection(threadId)).runs[0]!;
@@ -3675,7 +3680,7 @@ it.layer(layerTest)("ProjectionStoreV2", (it) => {
         yield* setRunStatus("failed");
         assert.deepStrictEqual(
           (yield* presented).map((shell) => shell.latestRunId),
-          [runId, runId],
+          flush ? [null, null] : [runId, runId],
         );
         yield* setRunStatus("running");
 
@@ -3709,9 +3714,11 @@ it.layer(layerTest)("ProjectionStoreV2", (it) => {
         // A failure needs the user, so it surfaces even though its prompt stays hidden.
         assert.deepStrictEqual(
           yield* presented,
-          [visible, visible].map((shell) =>
-            silent ? { ...shell, latestUserMessageAt: false } : shell,
-          ),
+          flush
+            ? [flushRunning, flushRunning]
+            : [visible, visible].map((shell) =>
+                silent ? { ...shell, latestUserMessageAt: false } : shell,
+              ),
         );
       }),
   );

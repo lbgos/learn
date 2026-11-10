@@ -1522,3 +1522,81 @@ it.effect("dispatch records the command outcome and its duration", () =>
     assert.strictEqual((yield* durations).count - durationsBefore, 1);
   }).pipe(Effect.provide(layerTest)),
 );
+
+it.effect(
+  "a context reset gives the thread a fresh provider conversation on the same session",
+  () =>
+    Effect.gen(function* () {
+      const orchestrator = yield* Orchestrator.OrchestratorV2;
+      const projections = yield* ProjectionStore.ProjectionStoreV2;
+      const threadId = ThreadId.make("thread:context-reset");
+      const sessionId = ProviderSessionId.make("session:context-reset");
+      const now = yield* DateTime.now;
+      yield* orchestrator.dispatch({
+        type: "thread.create",
+        commandId: CommandId.make("create-context-reset"),
+        threadId,
+        projectId: ProjectId.make("project:context-reset"),
+        title: "Lesson",
+        modelSelection,
+        runtimeMode: "full-access",
+        interactionMode: "default",
+        branch: null,
+        worktreePath: null,
+        createdBy: "user",
+        creationSource: "web",
+      });
+      const conversation = ProviderThreadId.make("provider-thread:context-reset");
+      yield* projections.apply({
+        id: EventId.make("provider-thread:context-reset"),
+        type: "provider-thread.updated",
+        threadId,
+        driver: adapter.driver,
+        providerInstanceId: instanceId,
+        occurredAt: now,
+        payload: {
+          id: conversation,
+          driver: adapter.driver,
+          providerInstanceId: instanceId,
+          providerSessionId: sessionId,
+          appThreadId: threadId,
+          ownerNodeId: null,
+          nativeThreadRef: {
+            driver: adapter.driver,
+            nativeId: "native:lesson",
+            strength: "strong",
+          },
+          nativeConversationHeadRef: null,
+          status: "active",
+          firstRunOrdinal: 1,
+          lastRunOrdinal: 1,
+          handoffIds: [],
+          forkedFrom: null,
+          createdAt: now,
+          updatedAt: now,
+        },
+      });
+      const reset = (name: string) =>
+        orchestrator.dispatch({
+          type: "thread.context.reset",
+          commandId: CommandId.make(name),
+          threadId,
+        });
+      const active = Effect.gen(function* () {
+        const records = yield* projections.getThreadRecords(threadId, ["providerThreads"]);
+        return records.providerThreads.find((t) => t.id === records.thread.activeProviderThreadId);
+      });
+
+      yield* reset("reset:1");
+      const fresh = yield* active;
+      assert.notStrictEqual(fresh?.id, conversation);
+      assert.deepInclude(fresh, {
+        providerSessionId: sessionId,
+        nativeThreadRef: null,
+        status: "not_loaded",
+      });
+      // A context that is already fresh stays as it is.
+      yield* reset("reset:2");
+      assert.strictEqual((yield* active)?.id, fresh?.id);
+    }).pipe(Effect.provide(layerTest)),
+);

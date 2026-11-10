@@ -234,6 +234,7 @@ import * as LearnPhaseRouting from "./learn/session/LearnPhaseRouting.ts";
 import * as LearnSessionLifecycle from "./learn/session/LearnSessionLifecycle.ts";
 import * as LearnSessionService from "./learn/session/LearnSessionService.ts";
 import * as LearnSessionStore from "./learn/session/LearnSessionStore.ts";
+import * as LearnContextFlush from "./learn/memory/LearnContextFlush.ts";
 import * as LearnDreams from "./learn/memory/LearnDreams.ts";
 import * as LearnMemoryService from "./learn/memory/LearnMemoryService.ts";
 import * as LearnMemoryStore from "./learn/memory/LearnMemoryStore.ts";
@@ -823,6 +824,7 @@ const layerLearn = Layer.mergeAll(
   LearnPhaseRouting.layer,
   LearnSessionLifecycle.layer,
   LearnDreams.layer.pipe(Layer.provide(ProjectionStoreV2.layer)),
+  LearnContextFlush.layer.pipe(Layer.provide(ProjectionStoreV2.layer)),
 ).pipe(
   Layer.provideMerge(layerLearnMemory),
   Layer.provideMerge(layerLearnSessions),

@@ -13,6 +13,7 @@ import * as Schema from "effect/Schema";
 import * as Orchestrator from "../../orchestration-v2/Orchestrator.ts";
 import * as Workspace from "../../physics/PhysicsWorkspaceService.ts";
 import * as Kinds from "./LearnSessionKinds.ts";
+import { flushRunIds } from "../memory/contextFlush.ts";
 import { LearnGraphError } from "@t3tools/contracts";
 
 const decodeJson = Schema.decodeExit(Schema.fromJsonString(Schema.Unknown));
@@ -36,11 +37,12 @@ export function teacherProse(projection: OrchestrationV2ThreadProjection): Teach
   const rolledBack = new Set(
     projection.runs.filter((run) => run.status === "rolled_back").map((run) => run.id),
   );
+  const flush = flushRunIds(projection.messages);
   return projection.messages
     .filter(
       (message) =>
         message.threadId === projection.thread.id &&
-        (message.runId === null || !rolledBack.has(message.runId)) &&
+        (message.runId === null || (!rolledBack.has(message.runId) && !flush.has(message.runId))) &&
         message.role === "assistant" &&
         !message.streaming &&
         !message.senderThreadId &&

@@ -484,6 +484,7 @@ function commandThreadId(command: OrchestrationV2ServerCommand): ThreadId {
     case "thread.archive":
     case "thread.unarchive":
     case "thread.delete":
+    case "thread.context.reset":
     case "thread.guest-share.open":
     case "thread.guest-share.redeem":
     case "thread.guest-share.close":
@@ -8220,6 +8221,70 @@ const makeOrchestrator = Effect.fn("orchestrationV2.Orchestrator.layer")(functio
     },
   );
 
+  // A new provider thread with no native conversation becomes the thread's active one, so the
+  // next run starts fresh on the same provider session (ProviderTurnStartService ensureThread).
+  const dispatchContextReset = Effect.fn("orchestrationV2.dispatch.contextReset")(function* (
+    command: Extract<OrchestrationV2InternalCommand, { readonly type: "thread.context.reset" }>,
+    events: Ref.Ref<Array<OrchestrationV2DomainEvent>>,
+  ) {
+    const projection = yield* projectionStore
+      .getThreadRecords(command.threadId, ["runs", "runtimeRequests", "providerThreads"], {
+        messageRoles: [],
+        turnItemTypes: [],
+      })
+      .pipe(
+        Effect.mapError(
+          (cause) => new OrchestratorProjectionError({ threadId: command.threadId, cause }),
+        ),
+      );
+    if (projection.thread.deletedAt !== null || threadHasUnfinishedWork(projection))
+      return yield* new OrchestratorDispatchError({
+        commandId: command.commandId,
+        commandType: command.type,
+        cause: `Thread ${command.threadId} has active work or is deleted.`,
+      });
+    const active = projection.providerThreads.find(
+      (candidate) => candidate.id === projection.thread.activeProviderThreadId,
+    );
+    if (
+      active === undefined ||
+      active.nativeThreadRef === null ||
+      active.providerSessionId === null
+    )
+      return;
+    const now = yield* DateTime.now;
+    yield* emit(
+      events,
+      command,
+    )({
+      type: "provider-thread.updated",
+      threadId: command.threadId,
+      driver: active.driver,
+      providerInstanceId: active.providerInstanceId,
+      occurredAt: now,
+      payload: {
+        id: idAllocator.derive.providerThread({
+          driver: active.driver,
+          nativeThreadId: `pending:reset:${command.commandId}`,
+        }),
+        driver: active.driver,
+        providerInstanceId: active.providerInstanceId,
+        providerSessionId: active.providerSessionId,
+        appThreadId: command.threadId,
+        ownerNodeId: null,
+        nativeThreadRef: null,
+        nativeConversationHeadRef: null,
+        status: "not_loaded",
+        firstRunOrdinal: null,
+        lastRunOrdinal: null,
+        handoffIds: [],
+        forkedFrom: null,
+        createdAt: now,
+        updatedAt: now,
+      },
+    });
+  });
+
   const dispatchSecretRequestRecord = Effect.fn("orchestrationV2.dispatch.secretRequestRecord")(
     function* (
       command: Extract<OrchestrationV2InternalCommand, { readonly type: "secret_request.record" }>,
@@ -12575,6 +12640,9 @@ const makeOrchestrator = Effect.fn("orchestrationV2.Orchestrator.layer")(functio
       case "thread.guest-message.dismiss":
         yield* dispatchGuestShare(command, events, effects);
         break;
+      case "thread.context.reset":
+        yield* dispatchContextReset(command, events);
+        break;
       case "provider-session.detach":
         yield* dispatchProviderSessionDetach(command, events, effects);
         break;
@@ -12908,7 +12976,9 @@ const makeOrchestrator = Effect.fn("orchestrationV2.Orchestrator.layer")(functio
           command.type === "thread.stop" ||
           command.type === "subagent.stop" ||
           // Closing a share again, or after it ended, is not an error.
-          command.type === "thread.guest-share.close",
+          command.type === "thread.guest-share.close" ||
+          // A context that is already fresh is not an error.
+          command.type === "thread.context.reset",
         (_planned) =>
           new OrchestratorDispatchError({
             commandId: command.commandId,

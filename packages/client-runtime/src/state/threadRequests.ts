@@ -10,6 +10,7 @@ import type {
   ProviderRequestKind,
   RuntimeRequestId,
 } from "@t3tools/contracts";
+import { isMemoryFlushMessage } from "@t3tools/contracts";
 import * as DateTime from "effect/DateTime";
 import type { AtomCommandResult } from "./runtime.ts";
 import type { ThreadStructure, ThreadStructureVisibleTurnItem } from "./models.ts";
@@ -279,6 +280,10 @@ export function derivePendingThreadRequests(
   return { approvals, userInputs };
 }
 
+/**
+ * Visible turn items as threads show them: answered questions carry their answers, and the
+ * hidden memory flush turns before a tutor's context reset are left out.
+ */
 export function createQuestionHistoryProjector<
   Row extends ThreadStructureVisibleTurnItem =
     OrchestrationV2ThreadProjection["visibleTurnItems"][number],
@@ -297,9 +302,21 @@ export function createQuestionHistoryProjector<
     if (rows === previousRows && requests === previousRequests && previousResult)
       return previousResult;
     const byId = new Map(requests.map((request) => [request.id, request]));
+    const flushRuns = new Set<string>();
+    for (const { item } of rows)
+      if (
+        item.type === "user_message" &&
+        item.runId !== null &&
+        isMemoryFlushMessage(item.messageId)
+      )
+        flushRuns.add(item.runId);
     let result: Row[] | undefined;
     for (const [index, row] of rows.entries()) {
       const item = row.item;
+      if (item.runId !== null && flushRuns.has(item.runId)) {
+        result ??= rows.slice(0, index);
+        continue;
+      }
       const request =
         item.type === "user_input_request" && !item.questionAnswer
           ? byId.get(item.requestId)

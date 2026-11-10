@@ -24,6 +24,7 @@ import { forkParked } from "../../serverActivation.ts";
 import * as Structured from "../LearnStructuredGeneration.ts";
 import * as Sessions from "../session/LearnSessionStore.ts";
 import * as Memory from "./LearnMemoryStore.ts";
+import { flushRunIds } from "./contextFlush.ts";
 import {
   applyDream,
   type DreamChange,
@@ -186,8 +187,11 @@ const make = Effect.gen(function* () {
       const records = yield* projections
         .getThreadRecords(session.threadId, ["messages"], { turnItemTypes: [] })
         .pipe(Effect.orElseSucceed(() => ({ messages: [] })));
+      const flush = flushRunIds(records.messages);
       const ordered = records.messages
-        .filter((m) => !m.streaming && m.role !== "system")
+        .filter(
+          (m) => !m.streaming && m.role !== "system" && (m.runId === null || !flush.has(m.runId)),
+        )
         .toSorted(
           (a, b) => DateTime.toEpochMillis(a.createdAt) - DateTime.toEpochMillis(b.createdAt),
         );

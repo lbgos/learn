@@ -577,6 +577,11 @@ export function idleCompactionOf(
     : undefined;
 }
 
+/** Message ids of the hidden turn that asks a tutor to save learner notes before a context reset. */
+export const MEMORY_FLUSH_MESSAGE_PREFIX = "memory-flush:";
+export const isMemoryFlushMessage = (messageId: string) =>
+  messageId.startsWith(MEMORY_FLUSH_MESSAGE_PREFIX);
+
 export const OrchestrationV2RunStatus = Schema.Literals([
   "preparing",
   "queued",
@@ -3501,6 +3506,15 @@ const OrchestrationV2InternalCommand = Schema.Union([
         notification: OrchestrationV2Notification,
       }),
     ),
+  }),
+  /**
+   * The thread's next run starts a new native provider conversation. The transcript stays;
+   * whoever resets supplies the context the new conversation needs.
+   */
+  Schema.Struct({
+    type: Schema.Literal("thread.context.reset"),
+    commandId: CommandId,
+    threadId: ThreadId,
   }),
 ]);
 export type OrchestrationV2InternalCommand = typeof OrchestrationV2InternalCommand.Type;

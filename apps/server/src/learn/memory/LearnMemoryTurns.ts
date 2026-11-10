@@ -5,6 +5,7 @@ import * as DateTime from "effect/DateTime";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Projections from "../../orchestration-v2/ProjectionStore.ts";
+import { flushRunIds, resetRecap } from "./contextFlush.ts";
 import * as Memory from "./LearnMemoryStore.ts";
 import {
   DENSE_MIN,
@@ -81,31 +82,17 @@ export const layer = Layer.effect(
       return seen;
     };
 
-    const notesForTurn = Effect.fn("LearnMemoryTurns.notesForTurn")(function* (input: {
-      readonly threadId: ThreadId;
-      readonly runId: string;
-      readonly providerThreadId: string;
-      readonly message: string;
-    }) {
+    const notesForTurn = Effect.fn("LearnMemoryTurns.notesForTurn")(function* (
+      input: {
+        readonly providerThreadId: string;
+        readonly message: string;
+      },
+      lastReply: string | undefined,
+    ) {
       const now = yield* Clock.currentTimeMillis;
       const at = DateTime.formatIso(DateTime.makeUnsafe(now));
       const core = yield* memory.core(at);
       if (core.total === 0) return undefined;
-      const lastReply = yield* projections
-        .getThreadRecords(input.threadId, ["messages"], { turnItemTypes: [] })
-        .pipe(
-          Effect.map(
-            ({ messages }) =>
-              messages
-                .filter((m) => m.role === "assistant" && m.runId !== input.runId && !m.streaming)
-                .toSorted(
-                  (a, b) =>
-                    DateTime.toEpochMillis(a.createdAt) - DateTime.toEpochMillis(b.createdAt),
-                )
-                .at(-1)?.text,
-          ),
-          Effect.orElseSucceed(() => undefined),
-        );
       const seen = seenIn(input.providerThreadId);
       const exclude = new Set([
         ...core.shown.map((note) => note.id),
@@ -146,16 +133,41 @@ export const layer = Layer.effect(
     });
 
     return LearnMemoryTurns.of({
-      forTurn: Effect.fn("LearnMemoryTurns.forTurn")(function* (input) {
+      forTurn: Effect.fn("LearnMemoryTurns.forTurn")(
+        function* (input) {
+          const records = yield* projections
+            .getThreadRecords(input.threadId, ["runs", "messages"], { turnItemTypes: [] })
+            .pipe(Effect.orElseSucceed(() => ({ runs: [], messages: [] })));
+          const flush = flushRunIds(records.messages);
+          const lastReply = records.messages
+            .filter(
+              (m) =>
+                m.role === "assistant" &&
+                m.runId !== input.runId &&
+                !m.streaming &&
+                (m.runId === null || !flush.has(m.runId)),
+            )
+            .toSorted(
+              (a, b) => DateTime.toEpochMillis(a.createdAt) - DateTime.toEpochMillis(b.createdAt),
+            )
+            .at(-1)?.text;
+          const blocks = [
+            yield* notesForTurn(input, lastReply),
+            resetRecap({
+              ...records,
+              runId: input.runId,
+              providerThreadId: input.providerThreadId,
+            }),
+          ].filter((block) => block !== undefined);
+          return blocks.length === 0 ? undefined : blocks.join("\n");
+        },
         // A defect, such as a corrupt stored vector, must not fail the turn either.
-        return yield* notesForTurn(input).pipe(
-          Effect.catchCause((cause) =>
-            Effect.logWarning("Learn memory unavailable for a turn", { cause }).pipe(
-              Effect.as(undefined),
-            ),
+        Effect.catchCause((cause) =>
+          Effect.logWarning("Learn memory unavailable for a turn", { cause }).pipe(
+            Effect.as(undefined),
           ),
-        );
-      }),
+        ),
+      ),
     });
   }),
 );

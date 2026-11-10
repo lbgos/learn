@@ -46,6 +46,8 @@ import type {
 import {
   IDLE_COMPACTION_TEXT,
   idleCompactionOf,
+  isMemoryFlushMessage,
+  MEMORY_FLUSH_MESSAGE_PREFIX,
   OrchestrationV2AppThreadJson as OrchestrationV2AppThreadJsonSchema,
   OrchestrationV2CheckpointJson as OrchestrationV2CheckpointJsonSchema,
   OrchestrationV2CheckpointScopeJson as OrchestrationV2CheckpointScopeJsonSchema,
@@ -1418,9 +1420,15 @@ export function threadShellFromProjection(
       projection.turnItems,
       providerSession?.lastError ?? null,
     ) ?? latestUnheldRun(runs);
+  // A running memory flush stays the active run: its tool calls need a live caller (threadAccess)
+  // and Stop reaches it.
   const activeRun =
-    runs
-      .filter(isInterruptibleRunForShell)
+    projection.runs
+      .filter(
+        (run) =>
+          isInterruptibleRunForShell(run) &&
+          (isMemoryFlushMessage(run.userMessageId) || !isSilentRunForShell(run, projection)),
+      )
       .toSorted((left, right) => right.ordinal - left.ordinal)[0] ?? null;
   const activityRun =
     runs.filter(isActivityRunForShell).toSorted((left, right) => right.ordinal - left.ordinal)[0] ??
@@ -1446,7 +1454,12 @@ export function threadShellFromProjection(
       ) ?? pendingRuntimeRequest;
   }
   const userMessages = projection.messages
-    .filter((message) => message.role === "user" && idleCompactionOf(message) === undefined)
+    .filter(
+      (message) =>
+        message.role === "user" &&
+        idleCompactionOf(message) === undefined &&
+        !isMemoryFlushMessage(message.id),
+    )
     .toSorted(
       (left, right) =>
         DateTime.toEpochMillis(right.updatedAt) - DateTime.toEpochMillis(left.updatedAt),
@@ -1587,6 +1600,8 @@ function isSilentRunForShell(
   run: OrchestrationV2ThreadProjection["runs"][number],
   projection: Pick<OrchestrationV2ThreadProjection, "messages" | "turnItems">,
 ): boolean {
+  // A memory flush stays hidden even when it fails: the reset after it needs nobody.
+  if (isMemoryFlushMessage(run.userMessageId)) return true;
   return (
     run.status !== "failed" &&
     projection.messages.some(
@@ -5725,20 +5740,24 @@ export const layer: Layer.Layer<ProjectionStoreV2, never, SqlClient.SqlClient> =
         )
       )`;
     };
+    const flushPattern = `${MEMORY_FLUSH_MESSAGE_PREFIX}%`;
     // Mirrors isSilentRunForShell.
     const isSilentShellRun = (alias: string) => {
       const run = sql.literal(alias);
       return sql`(
-        ${run}.status <> 'failed'
-        AND EXISTS (
-          SELECT 1 FROM orchestration_v2_projection_messages prompt
-          WHERE prompt.message_id = json_extract(${run}.payload_json, '$.userMessageId')
-            AND ${isIdleCompactionMessage("prompt")}
-        ) AND NOT EXISTS (
-          SELECT 1 FROM orchestration_v2_projection_turn_items compaction
-          WHERE compaction.thread_id = ${run}.thread_id AND compaction.run_id = ${run}.run_id
-            AND compaction.type = 'compaction'
-            AND compaction.status = 'failed'
+        json_extract(${run}.payload_json, '$.userMessageId') LIKE ${flushPattern}
+        OR (
+          ${run}.status <> 'failed'
+          AND EXISTS (
+            SELECT 1 FROM orchestration_v2_projection_messages prompt
+            WHERE prompt.message_id = json_extract(${run}.payload_json, '$.userMessageId')
+              AND ${isIdleCompactionMessage("prompt")}
+          ) AND NOT EXISTS (
+            SELECT 1 FROM orchestration_v2_projection_turn_items compaction
+            WHERE compaction.thread_id = ${run}.thread_id AND compaction.run_id = ${run}.run_id
+              AND compaction.type = 'compaction'
+              AND compaction.status = 'failed'
+          )
         )
       )`;
     };
@@ -5876,6 +5895,7 @@ export const layer: Layer.Layer<ProjectionStoreV2, never, SqlClient.SqlClient> =
                 WHERE message.thread_id = t.thread_id
                   AND message.role = 'user'
                   AND NOT ${isIdleCompactionMessage("message")}
+                  AND message.message_id NOT LIKE ${flushPattern}
                 ORDER BY message.updated_at DESC, message.message_id DESC
                 LIMIT 1
               ) AS latest_user_message_at,
@@ -5901,7 +5921,10 @@ export const layer: Layer.Layer<ProjectionStoreV2, never, SqlClient.SqlClient> =
               FROM orchestration_v2_projection_runs r
               WHERE r.thread_id = t.thread_id
                 AND r.status IN ('preparing', 'starting', 'running')
-                AND NOT ${isSilentShellRun("r")}
+                AND (
+                  json_extract(r.payload_json, '$.userMessageId') LIKE ${flushPattern}
+                  OR NOT ${isSilentShellRun("r")}
+                )
               ORDER BY r.ordinal DESC, r.run_id DESC
               LIMIT 1
             )
@@ -6131,6 +6154,7 @@ export const layer: Layer.Layer<ProjectionStoreV2, never, SqlClient.SqlClient> =
                 FROM orchestration_v2_projection_messages message
                 WHERE message.thread_id = t.thread_id AND message.role = 'user'
                   AND NOT ${isIdleCompactionMessage("message")}
+                  AND message.message_id NOT LIKE ${flushPattern}
                 ORDER BY message.updated_at DESC, message.message_id DESC
                 LIMIT 1
               ) AS latest_user_message_at,

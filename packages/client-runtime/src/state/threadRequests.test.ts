@@ -1,10 +1,14 @@
 import {
   EnvironmentId,
+  MEMORY_FLUSH_MESSAGE_PREFIX,
+  MessageId,
   NodeId,
   ProviderSessionId,
+  RunId,
   RuntimeRequestId,
   TurnItemId,
   type OrchestrationV2ThreadProjection,
+  type OrchestrationV2TurnItem,
 } from "@t3tools/contracts";
 import { describe, expect, it, vi } from "vite-plus/test";
 import { AsyncResult } from "effect/reactivity";
@@ -352,4 +356,45 @@ it("restores old text answers without mutating history or replacing unchanged ro
   expect(row.item).not.toHaveProperty("questionAnswer");
   expect(project(answered)).toBe(result);
   expect(project({ ...answered, visibleTurnItems: [...rows] })[0]).toBe(result[0]);
+});
+
+it("leaves out every row of a hidden memory flush turn", () => {
+  const project = createQuestionHistoryProjector();
+  const base = projection.turnItems[0]!;
+  const runId = RunId.make("run:memory-flush");
+  const row = (item: OrchestrationV2TurnItem) => ({
+    item,
+    position: 0,
+    sourceItemId: item.id,
+    sourceThreadId: item.threadId,
+    visibility: "local" as const,
+  });
+  const lesson = row(base);
+  const prompt = row({
+    id: TurnItemId.make("flush-prompt"),
+    threadId: base.threadId,
+    runId,
+    nodeId: null,
+    providerThreadId: null,
+    providerTurnId: null,
+    nativeItemRef: null,
+    parentItemId: null,
+    ordinal: 1,
+    status: "completed",
+    title: null,
+    startedAt: null,
+    completedAt: null,
+    updatedAt: base.updatedAt,
+    type: "user_message",
+    messageId: MessageId.make(`${MEMORY_FLUSH_MESSAGE_PREFIX}run:1`),
+    inputIntent: "turn_start",
+    createdBy: "agent",
+    creationSource: "server",
+    text: "Save notes",
+    attachments: [],
+  });
+  const note = row({ ...base, id: TurnItemId.make("flush-tool"), runId });
+  expect(project({ visibleTurnItems: [lesson, prompt, note], runtimeRequests: [] })).toStrictEqual([
+    lesson,
+  ]);
 });
