@@ -895,10 +895,12 @@ describe("UsageService", () => {
       }).pipe(Effect.scoped),
   );
 
-  it.live(
+  it.effect(
     "reads Muse inference history once, persists appended usage, and reprices unknown models",
     () =>
       Effect.gen(function* () {
+        // Hold the clock near the fixture so the 92-day scan-cache retention cannot age it out.
+        yield* TestClock.setTime(Date.parse("2026-08-02T12:00:00Z"));
         const { home, settings } = yield* setup;
         const museHome = NodePath.join(home, "configured-data", "muse");
         const dir = NodePath.join(museHome, "sessions", "2026", "08", "01", "parent");
