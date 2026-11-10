@@ -256,6 +256,7 @@ export function LearnReader({
       <div
         key={index}
         data-learn-slide={slide?.kind === "learn" ? slide.item.kind : slide?.kind}
+        data-learn-slide-scroll
         className="learn-slide-in learn-slide-fade flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain scrollbar-gutter-both"
       >
         {/* Every block stops at one 33rem edge, about 70 characters of prose a line. */}

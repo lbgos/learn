@@ -307,7 +307,7 @@ function LearnMemorySection({
             <p className="text-muted-foreground text-xs">
               {page.total} {page.total === 1 ? "note" : "notes"}
             </p>
-            <ul className="divide-y divide-border">
+            <ul data-learn-memory-list className="divide-y divide-border">
               {page.notes.map((note) => (
                 <NoteRow
                   key={note.id}
@@ -328,7 +328,7 @@ function LearnMemorySection({
         )}
       </div>
       {dreams && dreams.changes.length > 0 ? (
-        <ul className="divide-y divide-border">
+        <ul data-learn-memory-list className="divide-y divide-border">
           {dreams.changes.slice(0, CHANGES_SHOWN).map((change) => (
             <li key={change.id} className="flex items-start gap-2 py-1.5">
               <p className="min-w-0 flex-1 text-sm">

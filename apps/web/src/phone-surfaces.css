@@ -1,0 +1,200 @@
+/*
+ * Phone surfaces (max-width 767px): thread rows, settings rows and learner notes are cards; the
+ * top bars are solid with an edge that fades in with scroll; header controls are glass discs; a
+ * composer notice is a glass pill. All static paint: the one animation follows a scroll timeline
+ * and paints nothing while the page is still. The glass discs and notice pills are the only
+ * backdrop filters here.
+ */
+:root {
+  --phone-card-top: color-mix(in srgb, var(--foreground) 7%, var(--background));
+  --phone-card-bottom: color-mix(in srgb, var(--foreground) 5%, var(--background));
+  --phone-float-top: color-mix(in srgb, var(--foreground) 17%, var(--background));
+  --phone-float-bottom: color-mix(in srgb, var(--foreground) 13%, var(--background));
+  /* About 60% fill over the blur, so what scrolls under a disc reads as moving content. */
+  --phone-glass-top: color-mix(in srgb, var(--phone-float-top) 62%, transparent);
+  --phone-glass-bottom: color-mix(in srgb, var(--phone-float-bottom) 58%, transparent);
+  --phone-glass-filter: blur(16px) saturate(160%);
+  --phone-lit: color-mix(in srgb, var(--foreground) 22%, transparent);
+  --phone-lit-soft: color-mix(in srgb, var(--foreground) 12%, transparent);
+  --phone-ring: color-mix(in srgb, var(--foreground) 8%, transparent);
+  --phone-raised-shadow: 0 1px 2px rgb(0 0 0 / 45%);
+  --phone-float-shadow: 0 1px 2px rgb(0 0 0 / 35%), 0 6px 18px rgb(0 0 0 / 35%);
+  --phone-bar-edge: color-mix(in srgb, var(--foreground) 10%, transparent);
+  --phone-bar-shadow: 0 8px 20px -12px rgb(0 0 0 / 70%);
+  --phone-selected: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--foreground) 12%, transparent),
+    color-mix(in srgb, var(--foreground) 6%, transparent)
+  );
+}
+:root:not(.dark) {
+  --phone-card-top: #fff;
+  --phone-card-bottom: color-mix(in srgb, white 75%, var(--background));
+  --phone-float-top: #fff;
+  --phone-float-bottom: color-mix(in srgb, white 85%, var(--background));
+  --phone-glass-top: color-mix(in srgb, var(--phone-float-top) 72%, transparent);
+  --phone-glass-bottom: color-mix(in srgb, var(--phone-float-bottom) 66%, transparent);
+  --phone-glass-filter: blur(16px) saturate(180%);
+  --phone-lit: color-mix(in srgb, var(--foreground) 14%, transparent);
+  --phone-lit-soft: color-mix(in srgb, var(--foreground) 9%, transparent);
+  --phone-ring: color-mix(in srgb, var(--foreground) 7%, transparent);
+  --phone-raised-shadow: 0 1px 2px rgb(0 0 0 / 8%);
+  --phone-float-shadow: 0 1px 2px rgb(0 0 0 / 8%), 0 6px 18px rgb(0 0 0 / 9%);
+  --phone-bar-shadow: 0 8px 20px -12px rgb(0 0 0 / 22%);
+}
+
+@media (max-width: 767px) {
+  /* Row cards: each card has the card level, a lit top edge, a ring and the raised shadow, sits
+     12px from the screen edges and 6px from the next, with no hairlines. */
+  [data-slot="sidebar-group"] > [role="tree"] {
+    gap: 0;
+    padding-inline: 0.25rem;
+  }
+  [data-slot="sidebar-group"] > [role="tree"] > li:has([data-testid="sidebar-row-card"]) {
+    padding-block: 0.1875rem;
+  }
+  [data-settings-page-scroll] [data-slot="settings-group"]:has(> [data-slot="settings-row"]),
+  [data-settings-page-scroll] [data-slot="settings-group"].rounded-xl,
+  [data-learn-memory-list] {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    border: 0;
+    background: none;
+    box-shadow: none;
+  }
+  :is(
+      [data-settings-page-scroll] [data-slot="settings-group"]:has(> [data-slot="settings-row"]),
+      [data-settings-page-scroll] [data-slot="settings-group"].rounded-xl,
+      [data-learn-memory-list]
+    )
+    > * {
+    margin-block: 0;
+    border-top-width: 0;
+  }
+  :is(
+    [data-testid="sidebar-row-card"],
+    [data-settings-page-scroll] [data-slot="settings-row"],
+    [data-settings-page-scroll] [data-slot="settings-group"].rounded-xl > *,
+    [data-learn-memory-list] > li
+  ) {
+    border-radius: 0.75rem;
+    background: linear-gradient(180deg, var(--phone-card-top), var(--phone-card-bottom));
+    box-shadow:
+      inset 0 1px 0 var(--phone-lit-soft),
+      0 0 0 1px var(--phone-ring),
+      var(--phone-raised-shadow);
+  }
+  [data-testid="sidebar-row-card"]:is([aria-current="page"], :active) {
+    background:
+      var(--phone-selected),
+      linear-gradient(180deg, var(--phone-card-top), var(--phone-card-bottom));
+  }
+  [data-learn-memory-list] > li {
+    padding: 0.5rem 0.75rem;
+  }
+
+  /* Top bars are solid. Their edge and shadow live on a pseudo-element behind the bar's content,
+     whose opacity follows the first 28px of the scroller's offset through a named scroll
+     timeline: it fades in and out with the finger. */
+  [data-chat-header] {
+    background-color: var(--background);
+  }
+  [data-settings-page-header] {
+    position: relative;
+    border-bottom-color: transparent;
+  }
+  :is([data-chat-header], [data-settings-page-header]) {
+    isolation: isolate;
+  }
+  :is([data-chat-header], [data-settings-page-header])::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    box-shadow:
+      0 1px 0 var(--phone-bar-edge),
+      var(--phone-bar-shadow);
+    opacity: 0;
+  }
+  @supports (animation-timeline: scroll()) {
+    /* Each bar's nearest common ancestor with its scroller carries the timeline's name. */
+    :is([data-chat-column], [data-app-modal]) {
+      timeline-scope: --phone-bar;
+    }
+    :is(.messages-timeline-scroll, [data-learn-slide-scroll], [data-settings-page-scroll]) {
+      scroll-timeline: --phone-bar block;
+    }
+    /* `forwards`: under `both` Chromium shows the edge over a page with nothing to scroll. */
+    :is([data-chat-header], [data-settings-page-header])::after {
+      animation: phone-bar-edge-in auto linear forwards;
+      animation-timeline: --phone-bar;
+      animation-range: 0 28px;
+    }
+  }
+
+  /* Header controls float as glass discs: a translucent fill over a static backdrop blur, with
+     a lit top edge and a ring drawn as inset shadows so the edge never stacks over the fill.
+     `:is(:hover, :not(:hover))` keeps a touch's sticky hover from restyling them. */
+  :is(
+    [data-chat-header] :is([data-slot="button"], [data-slot="toggle"]),
+    [data-sidebar="trigger"],
+    [data-settings-page-header] button
+  ):is(:hover, :not(:hover)) {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-color: transparent;
+    border-radius: 9999px;
+    background: linear-gradient(180deg, var(--phone-glass-top), var(--phone-glass-bottom));
+    box-shadow:
+      inset 0 1px 0 var(--phone-lit),
+      inset 0 0 0 1px var(--phone-ring),
+      var(--phone-raised-shadow);
+    -webkit-backdrop-filter: var(--phone-glass-filter);
+    backdrop-filter: var(--phone-glass-filter);
+  }
+  :is(
+    [data-chat-header] :is([data-slot="button"], [data-slot="toggle"]),
+    [data-sidebar="trigger"],
+    [data-settings-page-header] button
+  ):is(:active, [data-pressed], [aria-expanded="true"]) {
+    background:
+      var(--phone-selected),
+      linear-gradient(180deg, var(--phone-glass-top), var(--phone-glass-bottom));
+  }
+
+  /* A composer notice floats over the page as a glass pill a step above the composer. Its fill
+     is denser than a disc's: its sentence sits over text. */
+  [data-slot="composer-banner-attachment"] {
+    margin-bottom: 0.5rem;
+  }
+  [data-composer-banner-surface] {
+    --chat-composer-attachment-overlap: 0px;
+    border-radius: 1.375rem;
+    padding-inline: 0.375rem;
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--phone-float-top) 86%, transparent),
+      color-mix(in srgb, var(--phone-float-bottom) 82%, transparent)
+    );
+    box-shadow:
+      inset 0 1px 0 var(--phone-lit),
+      inset 0 0 0 1px var(--phone-ring),
+      var(--phone-float-shadow);
+    -webkit-backdrop-filter: var(--phone-glass-filter);
+    backdrop-filter: var(--phone-glass-filter);
+  }
+  [data-composer-banner-surface]::before {
+    display: none;
+  }
+  [data-composer-banner-surface] [data-slot="composer-banner-content"] {
+    color: var(--foreground);
+  }
+}
+
+@keyframes phone-bar-edge-in {
+  to {
+    opacity: 1;
+  }
+}
