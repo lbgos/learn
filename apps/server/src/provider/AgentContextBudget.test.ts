@@ -1,4 +1,5 @@
 import * as NodeServices from "@effect/platform-node/NodeServices";
+import { LearnMemoryService } from "../learn/memory/LearnMemoryService.ts";
 import { expect, it } from "@effect/vitest";
 import { ProviderInstanceId } from "@t3tools/contracts";
 import { McpProviderSessions } from "@t3tools/provider-core/server/McpProviderSessions";
@@ -58,6 +59,7 @@ const toolHandlerServices = Layer.mergeAll(
   Layer.mock(LearnRoutingContext)({}),
   Layer.mock(LearnSessionService)({}),
   Layer.mock(ManagedProjectFolders)({ namedProjectsRoot: "" }),
+  Layer.mock(LearnMemoryService)({}),
   Layer.mock(McpProviderSessions)({}),
   Layer.mock(OrchestratorV2)({}),
   Layer.mock(PeerForwarding)({}),

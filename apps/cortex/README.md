@@ -33,6 +33,10 @@ The first embedding use downloads the pinned, quantized `Xenova/multilingual-e5-
 
 One process holds `.writer.lock` for the lifetime of the vault. After an unclean exit, verify that no cortex writer is running before manually removing that lock. A partial JSONL tail fails closed. Preserve the original log, repair a copy to its last complete event, and restore only after inspection. Rebuild never truncates the authoritative log. An artifact accepted before an indexing failure remains saved; `cortex_add_source` reports `indexed: false`, and rebuild retries it.
 
+## Learner memory embeddings
+
+`pnpm --filter @lbgos/cortex embed` serves the same model over loopback HTTP for the learner memory (`EMBED_HOST`, default `127.0.0.1`; `EMBED_PORT`, default `3982`; `EMBED_MODEL_CACHE`). It is stateless and holds about 550 MB. Set `LEARN_MEMORY_EMBED_URL=http://127.0.0.1:3982` on the Learn server to search notes by meaning as well as by words; unset, search is by words only. Any service that speaks the same `POST /embed` protocol with this model works, so an existing instance on the host can be shared.
+
 ## Agent connections
 
 The endpoint is MCP Streamable HTTP at `http://127.0.0.1:3981/mcp`, with `Authorization: Bearer <token>`. It supports stateless POST requests and JSON responses. One process shares the embedding model across clients. Browser Origin requests are rejected. The CLI rejects non-loopback bind addresses. Run it beside the app so both resolve the same loopback endpoint. The retired `CORTEX_TOKEN` is not accepted; replace it with distinct scoped tokens.

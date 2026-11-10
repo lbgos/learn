@@ -28,7 +28,7 @@ it.effect("ships a generated shared core within the per-kind prompt budgets", ()
     expect(tutorInstructions).not.toContain("youtube_captions");
     expect(tutorInstructions).not.toContain("# Teach sessions");
     expect(tutorInstructions).not.toContain("# Practice sessions");
-    expect(words(tutorInstructions)).toBeLessThanOrEqual(1135);
+    expect(words(tutorInstructions)).toBeLessThanOrEqual(1220);
     expect(words(tutorInstructions + teachInstructions)).toBeLessThanOrEqual(2200);
     expect(words(tutorInstructions + practiceInstructions)).toBeLessThanOrEqual(1900);
   }).pipe(Effect.provide(NodeServices.layer)),

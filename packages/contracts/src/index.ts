@@ -73,5 +73,6 @@ export * from "./physics.ts";
 export * from "./learnSettings.ts";
 export * from "./learnSession.ts";
 export * from "./learnGraph.ts";
+export * from "./learnMemory.ts";
 export * from "./learnHttp.ts";
 export * from "./voice.ts";

@@ -1,4 +1,5 @@
 import {
+  editNote,
   LEARN_ENDPOINTS,
   AuthOrchestrationOperateScope,
   LearnCreateSessionInput,
@@ -9,6 +10,7 @@ import {
   type AuthEnvironmentScope,
   type LearnActivityEntry,
 } from "@t3tools/contracts";
+import * as DateTime from "effect/DateTime";
 import * as Duration from "effect/Duration";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
@@ -26,6 +28,8 @@ import { graphFailure } from "./graph/graphFailure.ts";
 import * as Activity from "./graph/LearnActivity.ts";
 import * as Reactor from "./graph/LearnGraphReactor.ts";
 import * as Graph from "./graph/LearnGraphService.ts";
+import * as Dreams from "./memory/LearnDreams.ts";
+import * as Memory from "./memory/LearnMemoryStore.ts";
 import * as SessionState from "./session/LearnSessionService.ts";
 import * as Sessions from "./session/LearnSessionLifecycle.ts";
 import * as ModelContext from "../mcpApps/McpAppModelContext.ts";
@@ -117,6 +121,8 @@ export const layer = Layer.unwrap(
     const graph = yield* Graph.LearnGraphService;
     const reactor = yield* Reactor.LearnGraphReactor;
     const activity = yield* Activity.LearnActivity;
+    const memory = yield* Memory.LearnMemoryStore;
+    const dreams = yield* Dreams.LearnDreams;
     const E = LEARN_ENDPOINTS;
     return Layer.mergeAll(
       route(E.createSession, sessions.createSession),
@@ -187,6 +193,22 @@ export const layer = Layer.unwrap(
       route(E.activityStop, ({ id }) =>
         activity.stop(id).pipe(Effect.map((stopped) => ({ stopped }))),
       ),
+      route(E.memoryNotes, (request) => memory.page(request)),
+      route(E.memoryEdit, ({ id, text }) =>
+        Effect.gen(function* () {
+          const at = DateTime.formatIso(yield* DateTime.now);
+          // Forgetting a note is the learner's word: it is deleted, not retired.
+          yield* memory.edit((notes) => editNote(notes, id, text, at), { remove: "delete" });
+          return {};
+        }),
+      ),
+      route(E.memorySet, ({ id, pinned, retired }) =>
+        memory.setNote(id, { pinned, retired }).pipe(Effect.as({})),
+      ),
+      route(E.memoryDreams, () => dreams.state),
+      route(E.memoryDreamsSet, ({ enabled }) => dreams.setEnabled(enabled)),
+      route(E.memoryDreamsRun, () => dreams.runNow),
+      route(E.memoryDreamsUndo, ({ id }) => dreams.undo(id)),
     );
   }),
 ).pipe(Layer.provide(ModelContext.layer));

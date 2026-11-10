@@ -15,6 +15,7 @@ import {
   LearnGraphPositions,
   LearnReviewSummary,
 } from "./learnGraph.ts";
+import { LearnMemoryDreams, MemoryNotesPage, MEMORY_PAGE_MAX } from "./learnMemory.ts";
 import { LearnCreateSessionInput, LearnSessionSummary, LearnSessionState } from "./learnSession.ts";
 
 const count = Schema.Int.check(Schema.isGreaterThanOrEqualTo(0));
@@ -121,6 +122,61 @@ export const LEARN_ENDPOINTS = {
     Schema.Struct({ id: Schema.String }),
     Schema.Struct({ stopped: Schema.Boolean }),
     AuthOrchestrationOperateScope,
+  ),
+  /** The learner's memory notes: pinned, then newest; with `query`, best match first. */
+  memoryNotes: endpoint(
+    "memory/notes",
+    Schema.Struct({
+      query: Schema.optional(Schema.String.check(Schema.isMaxLength(200))),
+      retired: Schema.optional(Schema.Boolean),
+      offset: count,
+      limit: Schema.Int.check(Schema.isBetween({ minimum: 1, maximum: MEMORY_PAGE_MAX })),
+    }),
+    MemoryNotesPage,
+    AuthFilesystemReadScope,
+  ),
+  /** `editNote`: `id` null adds a note; empty text forgets one for good. */
+  memoryEdit: endpoint(
+    "memory/edit",
+    Schema.Struct({ id: Schema.NullOr(Schema.String), text: Schema.String }),
+    Schema.Struct({}),
+    AuthFilesystemWriteScope,
+  ),
+  /** Pins or unpins a note, or retires or restores it. */
+  memorySet: endpoint(
+    "memory/set",
+    Schema.Struct({
+      id: Schema.String,
+      pinned: Schema.optional(Schema.Boolean),
+      retired: Schema.optional(Schema.Boolean),
+    }),
+    Schema.Struct({}),
+    AuthFilesystemWriteScope,
+  ),
+  memoryDreams: endpoint(
+    "memory/dreams",
+    Schema.Struct({}),
+    LearnMemoryDreams,
+    AuthFilesystemReadScope,
+  ),
+  memoryDreamsSet: endpoint(
+    "memory/dreams/set",
+    Schema.Struct({ enabled: Schema.Boolean }),
+    LearnMemoryDreams,
+    AuthFilesystemWriteScope,
+  ),
+  /** Starts a check now; it runs on the review route. */
+  memoryDreamsRun: endpoint(
+    "memory/dreams/run",
+    Schema.Struct({}),
+    LearnMemoryDreams,
+    AuthOrchestrationOperateScope,
+  ),
+  memoryDreamsUndo: endpoint(
+    "memory/dreams/undo",
+    Schema.Struct({ id: Schema.String }),
+    LearnMemoryDreams,
+    AuthFilesystemWriteScope,
   ),
 };
 export type LearnEndpoint = (typeof LEARN_ENDPOINTS)[keyof typeof LEARN_ENDPOINTS];

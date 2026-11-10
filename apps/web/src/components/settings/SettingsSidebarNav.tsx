@@ -9,22 +9,22 @@ import {
 } from "react";
 import {
   ArchiveIcon,
-  FlaskConicalIcon,
   BookOpenIcon,
   BotIcon,
-  createLucideIcon,
+  BrainIcon,
   CalendarClockIcon,
   FileDiffIcon,
+  FlaskConicalIcon,
   FolderTreeIcon,
   GitBranchIcon,
   GlobeIcon,
   InfoIcon,
+  KeyRoundIcon,
+  KeyboardIcon,
   MessageSquareTextIcon,
   MessagesSquareIcon,
-  PanelsTopLeftIcon,
-  KeyboardIcon,
-  KeyRoundIcon,
   PaletteIcon,
+  PanelsTopLeftIcon,
   SearchIcon,
   ServerIcon,
   Settings2Icon,
@@ -32,6 +32,7 @@ import {
   SmartphoneIcon,
   WrenchIcon,
   XIcon,
+  createLucideIcon,
 } from "lucide-react";
 import { useLocation, useNavigate } from "@tanstack/react-router";
 
@@ -89,6 +90,7 @@ const SETTINGS_SECTION_ICONS: Readonly<
   Record<SettingsPath, ComponentType<{ className?: string }>>
 > = {
   "/settings/learning": BookOpenIcon,
+  "/settings/memory": BrainIcon,
   "/settings/general": Settings2Icon,
   "/settings/diagnostics": WrenchIcon,
   "/settings/appearance": PaletteIcon,

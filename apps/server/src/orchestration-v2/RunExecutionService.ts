@@ -1638,6 +1638,11 @@ export const layer: Layer.Layer<
         const learnSession = yield* learnRoutingContext.sessionForTurn(input.appThread);
         const learnJobs = yield* learnRoutingContext.jobsForTurn(input.appThread, input.run);
         const learnBreak = yield* learnRoutingContext.breakForTurn(input.appThread, input.run);
+        const learnMemory = yield* learnRoutingContext.memoryForTurn(input.appThread, {
+          runId: input.run.id,
+          providerThreadId: input.providerThread.id,
+          message: input.message.text,
+        });
         const appContext = [
           ...withLearnRoutingContext(
             clientContext,
@@ -1646,6 +1651,7 @@ export const layer: Layer.Layer<
           ...(learnSession === undefined ? [] : [{ key: "learn_session", text: learnSession }]),
           ...(learnJobs === undefined ? [] : [{ key: LEARN_JOBS_CONTEXT_KEY, text: learnJobs }]),
           ...(learnBreak === undefined ? [] : [{ key: LEARN_BREAK_CONTEXT_KEY, text: learnBreak }]),
+          ...(learnMemory === undefined ? [] : [{ key: "learn_memory", text: learnMemory }]),
         ];
         const turnInput = {
           appThread: input.appThread,

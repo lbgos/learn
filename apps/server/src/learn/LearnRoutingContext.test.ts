@@ -13,6 +13,7 @@ import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as LearnRoutingContext from "./LearnRoutingContext.ts";
 import * as LearnModelRouter from "./LearnModelRouter.ts";
+import * as LearnMemoryTurns from "./memory/LearnMemoryTurns.ts";
 import * as Sessions from "./session/LearnSessionService.ts";
 import * as LearnSessionStore from "./session/LearnSessionStore.ts";
 import * as ProviderRegistry from "../provider/ProviderRegistry.ts";
@@ -76,6 +77,7 @@ it.effect(
       Layer.mock(ProviderAdapterRegistry.ProviderAdapterRegistryV2)({
         list: () => Effect.succeed([selection.instanceId]),
       }),
+      Layer.mock(LearnMemoryTurns.LearnMemoryTurns)({}),
       Layer.mock(ProviderRegistry.ProviderRegistry)({
         getProviders: Effect.sync(() => [
           {
@@ -171,6 +173,7 @@ it.effect("notes the break on the first run requested after a pause and only the
     Layer.mock(LearnModelRouter.LearnModelRouter)({}),
     Layer.mock(ProviderAdapterRegistry.ProviderAdapterRegistryV2)({}),
     Layer.mock(ProviderRegistry.ProviderRegistry)({}),
+    Layer.mock(LearnMemoryTurns.LearnMemoryTurns)({}),
   );
   return Effect.gen(function* () {
     const context = yield* LearnRoutingContext.LearnRoutingContext;

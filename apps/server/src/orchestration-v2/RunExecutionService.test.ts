@@ -880,6 +880,7 @@ it.effect("passes safe app context and authoritative Learn routing to the provid
       { key: "learn_session", text: "session: teach\nphase: teach\nplan: current mass" },
       { key: "learn_jobs", text: "held job results" },
       { key: "learn_break", text: "back after a break" },
+      { key: "learn_memory", text: "Notes about the learner:\n- Prefers worked examples." },
     ]);
   }).pipe(
     Effect.provide(
@@ -892,6 +893,8 @@ it.effect("passes safe app context and authoritative Learn routing to the provid
               forTurn: () => Effect.succeed("current server routes"),
               jobsForTurn: () => Effect.succeed("held job results"),
               breakForTurn: () => Effect.succeed("back after a break"),
+              memoryForTurn: () =>
+                Effect.succeed("Notes about the learner:\n- Prefers worked examples."),
             }),
             PreviewAgentActivity.layer,
             Layer.mock(McpAppModelContext.McpAppModelContext)({

@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "start": "node src/cli.ts serve",
+    "embed": "node src/embed-serve.ts",
     "rebuild": "node src/cli.ts rebuild",
     "test": "node --test src/*.test.ts",
     "typecheck": "tsc --noEmit --checkers 1"

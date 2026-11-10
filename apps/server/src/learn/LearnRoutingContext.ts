@@ -9,6 +9,7 @@ import * as DateTime from "effect/DateTime";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as LearnModelRouter from "./LearnModelRouter.ts";
+import * as LearnMemoryTurns from "./memory/LearnMemoryTurns.ts";
 import * as Sessions from "./session/LearnSessionService.ts";
 import * as LearnSessionStore from "./session/LearnSessionStore.ts";
 import * as ProviderRegistry from "../provider/ProviderRegistry.ts";
@@ -33,6 +34,15 @@ export class LearnRoutingContext extends Context.Service<
       thread: LearningThread,
       run: Pick<OrchestrationV2Run, "ordinal">,
     ) => Effect.Effect<string | undefined>;
+    /** The learner-memory block: notes every tutor turn carries and notes recalled for `message`. */
+    readonly memoryForTurn: (
+      thread: LearningThread,
+      turn: {
+        readonly runId: string;
+        readonly providerThreadId: string;
+        readonly message: string;
+      },
+    ) => Effect.Effect<string | undefined>;
     /** The break before this run when it is the first run requested after a pause. */
     readonly breakForTurn: (
       thread: LearningThread,
@@ -49,6 +59,7 @@ const make = Effect.gen(function* () {
   const registry = yield* ProviderRegistry.ProviderRegistry;
   const adapters = yield* ProviderAdapterRegistry.ProviderAdapterRegistryV2;
   const projections = yield* ProjectionStore.ProjectionStoreV2;
+  const memory = yield* LearnMemoryTurns.LearnMemoryTurns;
   const isLearningTutor = (thread: LearningThread) =>
     thread.lineage.relationshipToParent === "subagent"
       ? Effect.succeed(false)
@@ -120,6 +131,11 @@ const make = Effect.gen(function* () {
         ),
       );
     }),
+    memoryForTurn: Effect.fn("LearnRoutingContext.memoryForTurn")(function* (thread, turn) {
+      if (!(yield* isLearningTutor(thread).pipe(Effect.orElseSucceed(() => false))))
+        return undefined;
+      return yield* memory.forTurn({ threadId: thread.id, ...turn });
+    }),
     breakForTurn: Effect.fn("LearnRoutingContext.breakForTurn")(function* (thread, run) {
       if (thread.lineage.relationshipToParent === "subagent") return undefined;
       return yield* Effect.gen(function* () {
@@ -156,5 +172,6 @@ export const layerEmpty = Layer.succeed(LearnRoutingContext, {
   sessionForTurn: Effect.fn("LearnRoutingContext.sessionForTurn")(() => Effect.undefined),
   forTurn: Effect.fn("LearnRoutingContext.forTurn")(() => Effect.undefined),
   jobsForTurn: Effect.fn("LearnRoutingContext.jobsForTurn")(() => Effect.undefined),
+  memoryForTurn: Effect.fn("LearnRoutingContext.memoryForTurn")(() => Effect.undefined),
   breakForTurn: Effect.fn("LearnRoutingContext.breakForTurn")(() => Effect.undefined),
 });

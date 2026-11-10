@@ -18,6 +18,7 @@ import type { ResolvedSettingsScope } from "./settingsScope";
 
 export type SettingsPath =
   | "/settings/learning"
+  | "/settings/memory"
   | "/settings/projects"
   | "/settings/general"
   | "/settings/diagnostics"
@@ -89,6 +90,7 @@ export interface SettingsSearchAvailability {
 
 export const SETTINGS_SECTION_LABELS: Readonly<Record<SettingsPath, string>> = {
   "/settings/learning": "Learning",
+  "/settings/memory": "Memory",
   "/settings/diagnostics": "Diagnostics",
   "/settings/projects": "Projects",
   "/settings/general": "General",
@@ -116,6 +118,7 @@ export const SETTINGS_SECTION_LABELS: Readonly<Record<SettingsPath, string>> = {
 // Learner settings retain provider configuration, display preferences and remote access.
 export const LEARNER_SETTINGS_PATHS: ReadonlySet<SettingsPath> = new Set([
   "/settings/learning",
+  "/settings/memory",
   "/settings/general",
   "/settings/providers",
   "/settings/appearance",
@@ -134,6 +137,7 @@ const ALL_SETTINGS_NAV_GROUPS: ReadonlyArray<{
     heading: null,
     paths: [
       "/settings/learning",
+      "/settings/memory",
       "/settings/general",
       "/settings/appearance",
       "/settings/chat",
@@ -721,6 +725,13 @@ export const SETTINGS_SEARCH_ITEMS = [
     searchTerms: ["extraction chunk tokens tutor tools"],
   },
   {
+    id: "learning-memory",
+    title: "Memory",
+    to: "/settings/memory",
+    scope: "environment",
+    searchTerms: ["learner notes remember forget pin nightly check dream undo"],
+  },
+  {
     id: "thread-title-instructions",
     title: "Thread title instructions",
     to: "/settings/threads",
@@ -1232,6 +1243,7 @@ const SEARCH_ITEMS_BY_ID = new Map(SETTINGS_SEARCH_ITEMS.map((item) => [item.id,
 
 const SETTINGS_CATEGORY_SCOPES: Readonly<Record<SettingsPath, SettingsSearchScope | null>> = {
   "/settings/learning": "environment-defaults",
+  "/settings/memory": "environment",
   "/settings/diagnostics": "environment",
   "/settings/projects": "project",
   "/settings/general": null,

@@ -234,6 +234,11 @@ import * as LearnPhaseRouting from "./learn/session/LearnPhaseRouting.ts";
 import * as LearnSessionLifecycle from "./learn/session/LearnSessionLifecycle.ts";
 import * as LearnSessionService from "./learn/session/LearnSessionService.ts";
 import * as LearnSessionStore from "./learn/session/LearnSessionStore.ts";
+import * as ContextSource from "./learn/memory/ContextSource.ts";
+import * as LearnDreams from "./learn/memory/LearnDreams.ts";
+import * as LearnMemoryService from "./learn/memory/LearnMemoryService.ts";
+import * as LearnMemoryStore from "./learn/memory/LearnMemoryStore.ts";
+import * as LearnMemoryTurns from "./learn/memory/LearnMemoryTurns.ts";
 
 // Escaped MCP handoff provenance can exceed find-my-way's 100-character segment default.
 const HTTP_ROUTER_CONFIG = {
@@ -558,8 +563,17 @@ const layerLearnSessions = LearnSessionService.layer.pipe(
   Layer.provide(LearnSessionStore.layer),
 );
 
+// One store instance: its write lock, vector sync and the turns' recall memory are per process.
+const layerLearnMemory = Layer.mergeAll(LearnMemoryService.layer, LearnMemoryTurns.layer).pipe(
+  Layer.provideMerge(LearnMemoryStore.layer),
+  Layer.provide(ContextSource.layer),
+  Layer.provide(LearnSessionStore.layer),
+  Layer.provide(ProjectionStoreV2.layer),
+);
+
 const layerLearnRouting = LearnRoutingContext.layer.pipe(
   Layer.provide(layerLearnSessions),
+  Layer.provide(layerLearnMemory),
   Layer.provide(LearnModelRouter.layer),
   Layer.provide(LearnSessionStore.layer),
   Layer.provide(ProviderAdapterRegistry.layerFromProviderInstanceRegistry),
@@ -807,7 +821,12 @@ const layerLearnSessionKinds = Layer.effect(
 );
 
 // Sessions and the graph are stored in the Lab, so they sit on the physics workspace service.
-const layerLearn = Layer.mergeAll(LearnPhaseRouting.layer, LearnSessionLifecycle.layer).pipe(
+const layerLearn = Layer.mergeAll(
+  LearnPhaseRouting.layer,
+  LearnSessionLifecycle.layer,
+  LearnDreams.layer.pipe(Layer.provide(ProjectionStoreV2.layer)),
+).pipe(
+  Layer.provideMerge(layerLearnMemory),
   Layer.provideMerge(layerLearnSessions),
   Layer.provideMerge(
     LearnGraph.layerServices.pipe(
@@ -858,6 +877,8 @@ const layerMakeRoutes = Layer.mergeAll(
     Layer.provide(ProviderAdapterRegistry.layerFromProviderInstanceRegistry),
     Layer.provide(McpOAuth.layerMcpClientAuthenticator),
   ),
+  // The learner-memory check runs nightly while the learner has it on.
+  Layer.effectDiscard(LearnDreams.LearnDreams.pipe(Effect.flatMap((dreams) => dreams.start()))),
   // Follows delegated tasks running in linked environments, including after a restart.
   Layer.effectDiscard(
     RemoteDelegation.RemoteDelegation.pipe(Effect.flatMap((remote) => remote.start())),
