@@ -60,6 +60,13 @@ export const layer: Layer.Layer<RuntimePolicyV2> = Layer.succeed(RuntimePolicyV2
   }),
 });
 
+/**
+ * A subagent thread's provider process ends this long after its turn. Learn jobs and delegated
+ * tasks rarely get a second turn, and each warm CLI holds its own memory. OpenCode sessions
+ * borrow one shared server, so they keep the default.
+ */
+export const SUBAGENT_IDLE_TIMEOUT_MS = 30_000;
+
 function providerRuntimeMode(
   runtimeMode: RuntimeMode,
   supportedRuntimeModes: ReadonlyArray<RuntimeMode> | undefined,
@@ -116,6 +123,10 @@ export const layerFromProjectStore: Layer.Layer<
           runtimeMode: providerRuntimeMode(input.thread.runtimeMode, supportedRuntimeModes),
           interactionMode: input.thread.interactionMode,
           cwd,
+          ...(input.thread.lineage.relationshipToParent === "subagent" &&
+          instance?.driverKind !== "opencode"
+            ? { idleTimeoutMs: SUBAGENT_IDLE_TIMEOUT_MS }
+            : {}),
         });
       }),
     });

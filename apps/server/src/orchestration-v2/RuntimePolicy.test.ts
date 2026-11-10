@@ -29,6 +29,7 @@ function makeThread(input: {
   readonly now: DateTime.Utc;
   readonly worktreePath: string | null;
   readonly runtimeMode?: RuntimeMode;
+  readonly subagent?: boolean;
 }): OrchestrationV2AppThread {
   const threadId = ThreadId.make("thread:runtime-policy");
   return {
@@ -44,11 +45,13 @@ function makeThread(input: {
     branch: null,
     worktreePath: input.worktreePath,
     activeProviderThreadId: null,
-    lineage: {
-      parentThreadId: null,
-      relationshipToParent: null,
-      rootThreadId: threadId,
-    },
+    lineage: input.subagent
+      ? {
+          parentThreadId: ThreadId.make("thread:runtime-policy-parent"),
+          relationshipToParent: "subagent",
+          rootThreadId: ThreadId.make("thread:runtime-policy-parent"),
+        }
+      : { parentThreadId: null, relationshipToParent: null, rootThreadId: threadId },
     forkedFrom: null,
     createdAt: input.now,
     updatedAt: input.now,
@@ -61,11 +64,13 @@ function makeThread(input: {
 }
 
 const grokInstanceId = ProviderInstanceId.make("grok");
+const opencodeInstanceId = ProviderInstanceId.make("opencode");
 const supportedRuntimeModesByInstance = new Map<ProviderInstanceId, ReadonlyArray<RuntimeMode>>([
   [grokInstanceId, ["approval-required", "auto", "full-access"]],
 ]);
 const providerInstanceFor = (instanceId: ProviderInstanceId) =>
   ({
+    driverKind: instanceId === opencodeInstanceId ? "opencode" : "codex",
     snapshot: {
       getSnapshot: Effect.succeed({
         supportedRuntimeModes: supportedRuntimeModesByInstance.get(instanceId),
@@ -121,6 +126,28 @@ it.layer(layerTest)("RuntimePolicyV2", (it) => {
       assert.equal(yield* modeFor(grokInstanceId, "auto"), "auto");
       assert.equal(yield* modeFor(grokInstanceId, "full-access"), "full-access");
       assert.equal(yield* modeFor(providerInstanceId, "auto-accept-edits"), "auto-accept-edits");
+    }),
+  );
+
+  it.effect("ends a subagent's own provider process soon after its turn", () =>
+    Effect.gen(function* () {
+      const policy = yield* RuntimePolicy.RuntimePolicyV2;
+      const now = yield* DateTime.now;
+      const idleFor = (subagent: boolean, instanceId: ProviderInstanceId) =>
+        policy
+          .resolve({
+            thread: makeThread({ now, worktreePath: null, subagent }),
+            modelSelection: { instanceId, model: "test-model" },
+          })
+          .pipe(Effect.map((resolved) => resolved.idleTimeoutMs));
+
+      assert.equal(
+        yield* idleFor(true, providerInstanceId),
+        RuntimePolicy.SUBAGENT_IDLE_TIMEOUT_MS,
+      );
+      assert.isUndefined(yield* idleFor(false, providerInstanceId));
+      // OpenCode sessions share one server.
+      assert.isUndefined(yield* idleFor(true, opencodeInstanceId));
     }),
   );
 });
