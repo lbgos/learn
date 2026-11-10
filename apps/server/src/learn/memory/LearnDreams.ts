@@ -237,22 +237,29 @@ const make = Effect.gen(function* () {
   });
 
   const backups = path.join(config.baseDir, "backups", "learn-memory");
-  /** Writes every note to `backups/learn-memory/notes-<day>.json` and drops copies past 14 days. */
+  /**
+   * Writes every note to `backups/learn-memory/notes-<day>T<hhmm>.json`, one file per run, and
+   * drops copies past 14 days.
+   */
   const backUpNotes = Effect.fn("LearnDreams.backUpNotes")(
     function* (nowMs: number) {
       const day = (ms: number) => DateTime.formatIso(DateTime.makeUnsafe(ms)).slice(0, 10);
       yield* fs.makeDirectory(backups, { recursive: true });
       yield* writeFileStringAtomically({
-        filePath: path.join(backups, `notes-${day(nowMs)}.json`),
+        filePath: path.join(
+          backups,
+          `notes-${DateTime.formatIso(DateTime.makeUnsafe(nowMs)).slice(0, 16).replace(":", "")}.json`,
+        ),
         contents: yield* encodeSnapshot(yield* memory.snapshot),
       }).pipe(
         Effect.provideService(FileSystem.FileSystem, fs),
         Effect.provideService(Path.Path, path),
       );
-      const oldest = `notes-${day(nowMs - BACKUP_DAYS * 86_400_000)}.json`;
-      for (const name of yield* fs.readDirectory(backups))
-        if (/^notes-\d{4}-\d{2}-\d{2}\.json$/.test(name) && name < oldest)
-          yield* fs.remove(path.join(backups, name));
+      const oldest = day(nowMs - BACKUP_DAYS * 86_400_000);
+      for (const name of yield* fs.readDirectory(backups)) {
+        const date = /^notes-(\d{4}-\d{2}-\d{2})(?:T\d{4})?\.json$/.exec(name)?.[1];
+        if (date !== undefined && date < oldest) yield* fs.remove(path.join(backups, name));
+      }
     },
     Effect.mapError((cause) => new LearnDreamsError({ operation: "write", cause })),
   );

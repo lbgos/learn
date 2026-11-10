@@ -234,7 +234,6 @@ import * as LearnPhaseRouting from "./learn/session/LearnPhaseRouting.ts";
 import * as LearnSessionLifecycle from "./learn/session/LearnSessionLifecycle.ts";
 import * as LearnSessionService from "./learn/session/LearnSessionService.ts";
 import * as LearnSessionStore from "./learn/session/LearnSessionStore.ts";
-import * as ContextSource from "./learn/memory/ContextSource.ts";
 import * as LearnDreams from "./learn/memory/LearnDreams.ts";
 import * as LearnMemoryService from "./learn/memory/LearnMemoryService.ts";
 import * as LearnMemoryStore from "./learn/memory/LearnMemoryStore.ts";
@@ -566,7 +565,6 @@ const layerLearnSessions = LearnSessionService.layer.pipe(
 // One store instance: its write lock, vector sync and the turns' recall memory are per process.
 const layerLearnMemory = Layer.mergeAll(LearnMemoryService.layer, LearnMemoryTurns.layer).pipe(
   Layer.provideMerge(LearnMemoryStore.layer),
-  Layer.provide(ContextSource.layer),
   Layer.provide(LearnSessionStore.layer),
   Layer.provide(ProjectionStoreV2.layer),
 );

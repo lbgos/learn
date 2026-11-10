@@ -3,7 +3,7 @@ import * as Effect from "effect/Effect";
 import * as LearnMemory from "../../../learn/memory/LearnMemoryService.ts";
 import * as Invocation from "../../McpInvocationContext.ts";
 import * as Access from "../../McpToolAccess.ts";
-import { ContextToolkit, MemoryToolkit } from "./tools.ts";
+import { MemoryToolkit } from "./tools.ts";
 
 const failure = (error: { readonly _tag: string; readonly message: string }) =>
   new OrchestratorMcpFailure({
@@ -29,15 +29,6 @@ export const layer = Access.toLayer(MemoryToolkit, {
     Effect.gen(function* () {
       const memory = yield* LearnMemory.LearnMemoryService;
       return yield* memory.search(yield* callerThread, input).pipe(Effect.mapError(failure));
-    }),
-  ),
-});
-
-export const layerContext = Access.toLayer(ContextToolkit, {
-  context_search: Access.readsAsCaller((input) =>
-    Effect.gen(function* () {
-      const memory = yield* LearnMemory.LearnMemoryService;
-      return yield* memory.contextSearch(yield* callerThread, input).pipe(Effect.mapError(failure));
     }),
   ),
 });

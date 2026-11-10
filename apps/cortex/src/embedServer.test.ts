@@ -31,6 +31,7 @@ NodeTest.test("embeds texts in order, as queries or passages, within the bounds"
       ],
     });
     NodeAssert.equal((await post({ texts: [] })).status, 400);
+    for (const body of [null, 3, "texts", ["a"]]) NodeAssert.equal((await post(body)).status, 400);
     NodeAssert.equal((await post({ texts: [1] })).status, 400);
     NodeAssert.equal(
       (await post({ texts: Array.from({ length: embedLimits.texts + 1 }, () => "a") })).status,

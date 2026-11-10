@@ -787,8 +787,12 @@ describe("assetResponseHeaders", () => {
       assetResponseHeaders("/attachments/upload.bin", { mimeType: "text/html" }),
     ).toMatchObject({
       "Content-Type": "text/html; charset=utf-8",
-      "Content-Security-Policy": "sandbox allow-scripts allow-forms allow-popups allow-downloads",
+      "Content-Security-Policy": expect.stringContaining("connect-src 'none'"),
     });
+    const policy = assetResponseHeaders("/agent/page.html")["Content-Security-Policy"] ?? "";
+    for (const directive of ["default-src 'none'", "img-src data: blob:", "form-action 'none'"])
+      expect(policy).toContain(directive);
+    expect(policy).not.toContain("allow-popups");
   });
 
   it("downloads uploaded documents without executing their content", () => {

@@ -38,13 +38,15 @@ export function createEmbedServer(embedder: Embedder) {
     });
     request.on("end", async () => {
       if (response.headersSent) return;
-      let input: { texts?: unknown; query?: unknown };
+      let input: unknown;
       try {
         input = JSON.parse(Buffer.concat(chunks).toString("utf8"));
       } catch {
         return reply(400, { error: "invalid JSON" });
       }
-      const texts = input.texts;
+      if (typeof input !== "object" || input === null || Array.isArray(input))
+        return reply(400, { error: "body must be an object" });
+      const { texts, query } = input as { texts?: unknown; query?: unknown };
       if (
         !Array.isArray(texts) ||
         texts.length === 0 ||
@@ -58,7 +60,7 @@ export function createEmbedServer(embedder: Embedder) {
           for (const text of texts as string[])
             out.push(
               Array.from(
-                await embedder.embed(text.slice(0, embedLimits.textChars), input.query === true),
+                await embedder.embed(text.slice(0, embedLimits.textChars), query === true),
               ),
             );
           return out;

@@ -148,6 +148,11 @@ export function changeMemory(
 ): Result.Result<MemoryEdit, string> {
   let next = [...notes];
   const removed: MemoryNote[] = [];
+  // An add without the learner's words could come from a page or file the tutor read.
+  if (change.add?.some((entry) => oneLine(entry)) && source.messageId === undefined)
+    return Result.fail(
+      "Every added note needs `quote`: the learner's own words it rests on, from one of their messages in this session.",
+    );
   for (const fragment of change.remove ?? []) {
     const needle = fragment.trim().toLowerCase();
     const byId = next.find((note) => note.id === fragment.trim());
@@ -155,6 +160,10 @@ export function changeMemory(
     if (!needle || matches.length === 0) return Result.fail(`No note contains "${fragment}".`);
     if (matches.length > 1)
       return Result.fail(`"${fragment}" matches ${matches.length} notes; quote more of one.`);
+    if (isUserNote(matches[0]!) || matches[0]!.pinned === "user")
+      return Result.fail(
+        `"${matches[0]!.text.slice(0, 80)}" was written or pinned by the learner; only they remove it, in Settings → Memory.`,
+      );
     removed.push(matches[0]!);
     next = next.filter((note) => note !== matches[0]);
   }

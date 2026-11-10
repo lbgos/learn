@@ -21,9 +21,8 @@ import { JobsToolkit } from "./toolkits/jobs/tools.ts";
 import * as LearnHandlers from "./toolkits/learn/handlers.ts";
 import { LearnToolkit, learnResultMeta } from "./toolkits/learn/tools.ts";
 import * as GraphHandlers from "./toolkits/graph/handlers.ts";
-import * as ContextSource from "../learn/memory/ContextSource.ts";
 import * as MemoryHandlers from "./toolkits/memory/handlers.ts";
-import { ContextToolkit, MemoryToolkit } from "./toolkits/memory/tools.ts";
+import { MemoryToolkit } from "./toolkits/memory/tools.ts";
 import { GraphToolkit } from "./toolkits/graph/tools.ts";
 import {
   SimRunTool,
@@ -1207,19 +1206,8 @@ export const layerLearnToolkit = toolkitRegistration(
   learnResultMeta,
 );
 const layerGraphToolkit = toolkitRegistration(GraphToolkit, GraphHandlers.layer);
-// Learner memory needs LearnMemoryService from the runtime; context_search exists only when configured.
-const layerMemoryToolkit = Layer.merge(
-  toolkitRegistration(MemoryToolkit, MemoryHandlers.layer),
-  Layer.unwrap(
-    ContextSource.configured.pipe(
-      Effect.map((source) =>
-        Option.isSome(source)
-          ? toolkitRegistration(ContextToolkit, MemoryHandlers.layerContext)
-          : Layer.empty,
-      ),
-    ),
-  ),
-);
+// Learner memory needs LearnMemoryService from the runtime.
+const layerMemoryToolkit = toolkitRegistration(MemoryToolkit, MemoryHandlers.layer);
 
 const layerJobsToolkit = toolkitRegistration(JobsToolkit, JobsHandlers.layer).pipe(
   Layer.provide(LearnJobs.layer),

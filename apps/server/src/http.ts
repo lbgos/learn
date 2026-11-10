@@ -59,8 +59,12 @@ const OTLP_TRACES_PROXY_PATH = "/api/observability/v1/traces";
 const LOOPBACK_HOSTNAMES = new Set(["127.0.0.1", "::1", "localhost"]);
 const SVG_CONTENT_SECURITY_POLICY = "default-src 'none'; style-src 'unsafe-inline'; sandbox";
 // Opaque origin blocks cookies, storage and API access while allowing scripts.
-// Agent HTML can open without a click, so disallow blocking modals.
+// Agent HTML can open without a click, so disallow blocking modals. It may show what memory
+// tools returned, so it loads nothing and sends nothing: no network, forms or popups.
 const HTML_CONTENT_SECURITY_POLICY =
+  "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; media-src data: blob:; connect-src 'none'; form-action 'none'; base-uri 'none'; sandbox allow-scripts allow-downloads";
+// MCP app documents carry their server's own CSP meta; the header only isolates them.
+const MCP_APP_CONTENT_SECURITY_POLICY =
   "sandbox allow-scripts allow-forms allow-popups allow-downloads";
 
 // Proxies may strip disposition; force document-capable downloads to octet-stream.
@@ -177,6 +181,7 @@ export const assetFileResponse = Effect.fn("assetFileResponse")(function* (
     !asset.download &&
     headers["Content-Type"] === "text/html; charset=utf-8"
   ) {
+    headers["Content-Security-Policy"] = MCP_APP_CONTENT_SECURITY_POLICY;
     const bytes = yield* readMcpAppHtml(asset.path);
     if (bytes === null) {
       return HttpServerResponse.text("MCP app is too large to preview.", { status: 413 });

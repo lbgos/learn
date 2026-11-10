@@ -161,10 +161,10 @@ it.effect(
       // Before it changes a note, the check keeps a copy and 14 days of earlier ones.
       assert.deepEqual((yield* fs.readDirectory(backups)).toSorted(), [
         "notes-2026-10-30.json",
-        "notes-2026-11-08.json",
+        "notes-2026-11-08T0330.json",
       ]);
       assert.include(
-        yield* fs.readFileString(`${backups}/notes-2026-11-08.json`),
+        yield* fs.readFileString(`${backups}/notes-2026-11-08T0330.json`),
         "Exam on 20 June.",
       );
       assert.notInclude(sent[0]!, "skip calculus");

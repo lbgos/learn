@@ -9,12 +9,10 @@ import * as Context from "effect/Context";
 import * as DateTime from "effect/DateTime";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
-import * as Option from "effect/Option";
 import * as Result from "effect/Result";
 import * as Schema from "effect/Schema";
 import * as Projections from "../../orchestration-v2/ProjectionStore.ts";
 import * as Sessions from "../session/LearnSessionStore.ts";
-import { ContextSource, type ContextResult, ContextSourceError } from "./ContextSource.ts";
 import * as Memory from "./LearnMemoryStore.ts";
 import {
   changeMemory,
@@ -69,14 +67,6 @@ export class LearnMemoryService extends Context.Service<
       ReturnType<typeof memorySearchResult>,
       LearnMemoryRefused | Memory.LearnMemoryError
     >;
-    /** Reads the external personal context source; fails when none is configured. */
-    readonly contextSearch: (
-      threadId: ThreadId,
-      input: { readonly query: string; readonly limit?: number | undefined },
-    ) => Effect.Effect<
-      { readonly results: ReadonlyArray<ContextResult> },
-      LearnMemoryRefused | ContextSourceError
-    >;
   }
 >()("t3/learn/memory/LearnMemoryService") {}
 
@@ -86,7 +76,6 @@ export const layer = Layer.effect(
     const memory = yield* Memory.LearnMemoryStore;
     const sessions = yield* Sessions.LearnSessionStore;
     const projections = yield* Projections.ProjectionStoreV2;
-    const context = yield* Effect.serviceOption(ContextSource);
 
     /** Only a tutoring session's own thread has the learner's memory. */
     const requireSession = (threadId: ThreadId) =>
@@ -195,21 +184,6 @@ export const layer = Layer.effect(
           )
           .pipe(Effect.ignore({ log: true }));
         return memorySearchResult(ranked);
-      }),
-      contextSearch: Effect.fn("LearnMemoryService.contextSearch")(function* (threadId, input) {
-        yield* requireSession(threadId);
-        if (Option.isNone(context))
-          return yield* new LearnMemoryRefused({
-            message: "No personal context source is set up.",
-          });
-        const results = yield* context.value
-          .search({ query: input.query, limit: input.limit ?? 5 })
-          .pipe(
-            Effect.tapError((error) =>
-              Effect.logWarning("Personal context search failed", { reason: error.reason }),
-            ),
-          );
-        return { results };
       }),
     });
   }),

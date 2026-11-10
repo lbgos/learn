@@ -422,11 +422,15 @@ export function applyDream(input: {
           continue;
         }
         const newest = found.toSorted((a, b) => b.source.at.localeCompare(a.source.at))[0]!;
+        // The merged note holds as long as its longest-lived part; one without an end has none.
+        const untils = found.map((n) => n.until);
+        const until = untils.every((u) => u !== undefined) ? untils.toSorted().at(-1) : undefined;
         const merged: MemoryNote = {
           id: note.id,
           text,
           status: "fresh",
           source: newest.source,
+          ...(until ? { until } : {}),
           checkedAt: input.now,
           ...(found.some((n) => n.pinned === "user")
             ? { pinned: "user" as const }

@@ -413,6 +413,16 @@ describe("expireStale and undoChange", () => {
     assert.equal(expired.changes[0]?.reason, "Ended 2026-11-07");
   });
 
+  it("keeps the latest end date of merged notes only when each has one", () => {
+    const ending = [
+      { ...room, until: "2026-12-18" },
+      { ...roomAgain, until: "2026-12-20" },
+    ];
+    const merge = [op({ op: "merge", ids: ["n2", "n3"], text: "Exam is in room 214." })];
+    assert.equal(dream(merge, ending).notes[0]?.until, "2026-12-20");
+    assert.isUndefined(dream(merge, [ending[0]!, roomAgain]).notes[0]?.until);
+  });
+
   it("undoes a merge but keeps a note the user edited since", () => {
     const merged = dream([op({ op: "merge", ids: ["n2", "n3"], text: "Exam is in room 214." })]);
     const change = merged.changes[0]!;

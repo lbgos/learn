@@ -147,8 +147,9 @@ export const layer = Layer.effect(
 
     return LearnMemoryTurns.of({
       forTurn: Effect.fn("LearnMemoryTurns.forTurn")(function* (input) {
+        // A defect, such as a corrupt stored vector, must not fail the turn either.
         return yield* notesForTurn(input).pipe(
-          Effect.catch((cause) =>
+          Effect.catchCause((cause) =>
             Effect.logWarning("Learn memory unavailable for a turn", { cause }).pipe(
               Effect.as(undefined),
             ),

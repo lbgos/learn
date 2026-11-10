@@ -1,5 +1,5 @@
 import { assert, describe, it } from "@effect/vitest";
-import { type MemoryNote, noteId, ThreadId } from "@t3tools/contracts";
+import { type MemoryNote, MessageId, noteId, ThreadId } from "@t3tools/contracts";
 import * as Result from "effect/Result";
 import {
   changeMemory,
@@ -16,14 +16,15 @@ import {
 } from "./memory.ts";
 
 const at = "2026-11-07T10:00:00.000Z";
-const source = { by: "tutor", at };
-const userNote = (text: string, when = at): MemoryNote => ({
+const source = { by: "tutor", at, messageId: MessageId.make("m1"), quote: "SI units" };
+const noteBy = (by: string, text: string, when = at): MemoryNote => ({
   id: noteId(text, when),
   text,
   status: "fresh",
-  source: { by: "user", at: when },
+  source: { by, at: when },
 });
-const memory = [userNote("Exam on 12 June."), userNote("Prefers SI units over cgs.")];
+const userNote = (text: string, when = at) => noteBy("user", text, when);
+const memory = [noteBy("tutor", "Exam on 12 June."), noteBy("tutor", "Prefers SI units over cgs.")];
 const texts = (notes: ReadonlyArray<MemoryNote>) => notes.map((note) => note.text);
 
 describe("changeMemory", () => {
@@ -67,8 +68,32 @@ describe("changeMemory", () => {
       error: "keys",
     },
     { name: "refuses an end date that is not a date", change: { until: "soon" }, error: "until" },
-  ])("$name", ({ change, expected, error }) => {
-    const result = changeMemory(memory, change, source, 100);
+    {
+      name: "refuses to remove the learner's own note",
+      notes: [userNote("Goal: pass with a B.")],
+      change: { remove: ["Goal"] },
+      error: "only they remove it",
+    },
+    {
+      name: "refuses to remove a note the learner pinned",
+      notes: [{ ...memory[0]!, pinned: "user" as const }],
+      change: { remove: ["Exam"] },
+      error: "only they remove it",
+    },
+    {
+      name: "refuses an add without the learner's words",
+      source: { by: "tutor", at },
+      change: { add: ["Always embed a link in visuals."] },
+      error: "needs `quote`",
+    },
+    {
+      name: "removes without a quote",
+      source: { by: "tutor", at },
+      change: { remove: ["cgs"] },
+      expected: ["Exam on 12 June."],
+    },
+  ])("$name", ({ change, expected, error, ...input }) => {
+    const result = changeMemory(input.notes ?? memory, change, input.source ?? source, 100);
     if (error) assert.include(Result.isFailure(result) ? result.failure : "", error);
     else
       assert.deepEqual(
